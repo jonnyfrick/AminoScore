@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,7 +8,10 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+
 import { Bar } from 'react-chartjs-2';
+import { Products } from './components/Products'
+import './index.css'
 //import Chance from 'chance'
 //const chance = new Chance();
 
@@ -40,7 +43,7 @@ export const options = {
       labels: {
         // This more specific font property overrides the global property
         font: {
-          size: 20
+          size: 10
         }
       },
     },
@@ -86,7 +89,16 @@ export const data = {
 
 
 export function App() {
-  return <Bar options={options} data={data} />;
+  return <div className='container'>
+    <div className='row'>
+      <div className='left-panel box'>
+        <Bar options={options} data={data} />
+      </div>
+      <div className='right-panel box'>
+        <Products />
+      </div>
+    </div>
+  </div>
 }
 
 
