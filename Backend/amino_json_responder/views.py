@@ -9,7 +9,6 @@ import random
 category = "Vegetables and Vegetable Products"
 
 
-
 with open("./process_fdc_data/ProcessedFoodData.json") as food_data_file:
     global_food_data = json.load(food_data_file)
 
@@ -43,11 +42,11 @@ def get_recommended_foods(request, url_param):
 
     one_category = global_food_data[category]
 
-    choson_foods = {}
+    chosen_foods = {}
 
     for i in range(5):
         found_nutrient_key = random.choice(list(one_category.keys()))
         found_nutrient_value = one_category[found_nutrient_key]
-        choson_foods[found_nutrient_key] = found_nutrient_value
+        chosen_foods[found_nutrient_key] = found_nutrient_value
 
-    return HttpResponse(json.dumps(choson_foods))
+    return HttpResponse(json.dumps(chosen_foods))
