@@ -1,5 +1,8 @@
 import json
 from builtins import print
+from amino_json_responder import models
+
+flush_json = False
 
 
 essentials = (
@@ -60,6 +63,9 @@ def print_categories(input_set):
     for current_category, current_number in input_set.items():
         print(current_category + ": " + str(current_number))
 
+
+
+
 #execution code
 
 nutrients_list = kids_essentials
@@ -84,9 +90,11 @@ output_foods = parse_nutrients(global_foundation_food_list, nutrients_list, outp
 
 
 
+if flush_json:
+    #print(json.dumps(output_foods))
+    output_file = open("ProcessedFoodData.json", "w")
+    output_file.write(json.dumps(output_foods))
+    output_file.close()
 
-#print(json.dumps(output_foods))
-output_file = open("ProcessedFoodData.json", "w")
-output_file.write(json.dumps(output_foods))
-output_file.close()
+
 

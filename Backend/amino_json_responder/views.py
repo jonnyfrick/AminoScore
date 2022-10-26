@@ -3,8 +3,13 @@ from django.http import HttpResponse
 import json
 #import os
 import random
+from amino_json_responder import models
+#from amino_json_responder import fill_models
+
 
 #print(os.path.abspath("./../../process_fdc_data/ProcessedFoodData.json"))
+
+refresh_model = True
 
 category = "Vegetables and Vegetable Products"
 
@@ -14,6 +19,11 @@ with open("./process_fdc_data/ProcessedFoodData.json") as food_data_file:
 
 with open("./process_fdc_data/NutrientsList.json") as nutrients_list_file:
     global_nutrients_list = json.load(nutrients_list_file)
+
+
+
+
+    
 
 def get_nutrients_list(request):
 
