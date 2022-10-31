@@ -13,6 +13,25 @@ def get_nutrients_list(request):
 
     return HttpResponse(json.dumps(models.Food.get_nutrients_keys()))
     
+
+def get_foods(request, restriction):
+
+    found_foods = []
+
+    if restriction == "none":
+        foods_query_set = models.Food.objects.all()
+    if restriction == "vegetarian":
+        foods_query_set = models.Food.objects.filter(food_category__vegetarian = True)
+    if restriction == "vegan":
+        foods_query_set = models.Food.objects.filter(food_category__vegan = True)
+
+    for current_food in foods_query_set:
+        found_foods.append(current_food.food_name)
+
+    return HttpResponse(json.dumps(found_foods))
+
+
+
 def get_containing_foods(request, searched_food):
 
     foods_query_set = models.Food.objects.filter(food_category__vegan = True).filter(food_name__contains = searched_food)
