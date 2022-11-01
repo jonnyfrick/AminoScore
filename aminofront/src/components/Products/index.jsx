@@ -162,7 +162,7 @@ export function Products(props) {
         Header: "Edit",
         Cell: ({ row }) => (
           <Button onClick={() => alert("Editing: " + row.values.price)}>
-            Edit
+            Add
           </Button>
         ),
       },

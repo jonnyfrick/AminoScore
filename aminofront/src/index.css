@@ -24,28 +24,30 @@ code {
 }
 .container {
   
-  height: 100vh;
+  position: relative;
+  margin: auto;
+  height: 80vh;
+  width: 80vw;
+}
 
+/*this is to extend the table*/
+.css-1uqjd1s {
+  width:100%;
+
+}
+
+/* .box {
+  border: 1px solid rgb(194, 27, 27);
   
 }
 
 
-
-.box {
-  border: 1px solid black;
-}
-
-.row {
-  display: flex;
-  height: 100%;
-}
-
 .left-panel {
-  flex: 5;
+  width: 40%;
 }
 
 
 .right-panel {
-  flex: 4;
+  width: 50%;
   padding-left: 5%;
-}
+} */

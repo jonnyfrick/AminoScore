@@ -28,6 +28,8 @@ const mock_data = { "Peanut butter, creamy": [0.229, 0.806, 0.92, 1.88, 0.951, 0
 
 
 export const options = {
+  responsive: true,
+  maintainAspectRatio: true,
   plugins: {
     title: {
       display: true,
@@ -39,7 +41,8 @@ export const options = {
     },
 
     legend: {
-      position: 'right',
+      position: 'chartArea',
+      align: 'start',
       labels: {
         // This more specific font property overrides the global property
         font: {
@@ -86,18 +89,10 @@ export const data = {
 };
 
 
-
-
 export function App() {
   return <div className='container'>
-    <div className='row'>
-      <div className='left-panel box'>
-        <Bar options={options} data={data} />
-      </div>
-      <div className='right-panel box'>
-        <Products />
-      </div>
-    </div>
+    <Bar options={options} data={data} />
+    <Products />
   </div>
 }
 
