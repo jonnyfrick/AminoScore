@@ -4,15 +4,24 @@ import json
 #import os
 import random
 from amino_json_responder import models
+from amino_json_responder import serializers
+from rest_framework import viewsets
+from rest_framework.response import Response
 
 #from amino_json_responder import fill_models
 
 #print(os.path.abspath("./../../process_fdc_data/ProcessedFoodData.json"))
 
+
+class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = models.Food.objects.filter(food_category__vegan = True)
+    serializer_class = serializers.FoodSerializer
+
 def get_nutrients_list(request):
 
     return HttpResponse(json.dumps(models.Food.get_nutrients_keys()))
-    
+
 
 def get_foods(request, restriction):
 
