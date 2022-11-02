@@ -52,7 +52,9 @@ def get_nutrients_info(request, exact_food_key_string):
 
     return HttpResponse(json.dumps(response))
 
-def get_recommended_foods(request, url_param):
+def get_recommended_foods(request):
+
+    input_nutrients =  json.loads(request.GET.get('Nutrients', 0.0))
 
     chosen_foods = {}
     foods_query_set = models.Food.objects.filter(food_category__vegan = True)

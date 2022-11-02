@@ -6,5 +6,5 @@ urlpatterns = [
     path("get_foods/<restriction>", views.get_foods, name="get_foods"),
     path("get_containing_foods/<searched_food>", views.get_containing_foods, name="get_containing_foods"),
     path("get_nutrients_info/<exact_food_key_string>", views.get_nutrients_info, name="get_nutrients_info"),
-    path("get_recommended_foods/<url_param>", views.get_recommended_foods, name="get_recommended_foods"),
+    path("get_recommended_foods/", views.get_recommended_foods, name="get_recommended_foods"),
 ]
