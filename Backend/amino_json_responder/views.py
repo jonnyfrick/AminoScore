@@ -8,7 +8,7 @@ from amino_json_responder import serializers
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from recommender import mixing_ratio_optimizer
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,13 +23,21 @@ class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Food.objects.filter(food_category__vegan = True)
     serializer_class = serializers.FoodSerializer
 
-class APIViewTestClass(APIView):
+class GetOptimizedMixingRatioAPIView(APIView):
 
-    def get(self, request, test_param, format = None):
+    def get(self, request, format = None):
 
-        test_dict = {"TestKey": 34, "K2": 45}
+        foods = json.loads(request.query_params.get('Foods'))
 
-        return Response(test_dict)
+        foods_nutrients = []
+        
+        for current_food in foods:
+            requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food)[:1]
+            foods_nutrients.append(requested_food_query_set[0].get_nutrients_values())
+
+        normalized_mixing_ratio = mixing_ratio_optimizer.optimize_mixing_ratio(foods_nutrients)
+
+        return Response(normalized_mixing_ratio)
 
 
 @api_view()
@@ -38,7 +46,7 @@ def get_nutrients_list(request):
     return Response(models.Food.get_nutrients_keys())
 
 @api_view()
-def get_foods(request, restriction, second_param):
+def get_foods(request, restriction):
 
     found_foods = []
 
@@ -55,7 +63,7 @@ def get_foods(request, restriction, second_param):
     return Response(found_foods)
 
 
-
+@api_view()
 def get_containing_foods(request, searched_food):
 
     foods_query_set = models.Food.objects.filter(food_category__vegan = True).filter(food_name__contains = searched_food)
@@ -64,8 +72,9 @@ def get_containing_foods(request, searched_food):
     for current_food in foods_query_set:
         found_foods.append(current_food.food_name)
 
-    return HttpResponse(json.dumps(found_foods))
+    return Response(found_foods)
 
+@api_view()
 def get_nutrients_info(request, exact_food_key_string):
     
     try:
@@ -74,11 +83,12 @@ def get_nutrients_info(request, exact_food_key_string):
     except(models.Food.DoesNotExist):
         response = "key not found"
 
-    return HttpResponse(json.dumps(response))
+    return Response(response)
 
+@api_view()
 def get_recommended_foods(request):
 
-    input_nutrients =  json.loads(request.GET.get('Nutrients', 0.0))
+    input_nutrients =  json.loads(request.query_params.get('Nutrients'))
 
     chosen_foods = {}
     foods_query_set = models.Food.objects.filter(food_category__vegan = True)
@@ -87,4 +97,4 @@ def get_recommended_foods(request):
         found_food = random.choice(foods_query_set)
         chosen_foods[found_food.food_name] = found_food.get_nutrients_values()
 
-    return HttpResponse(json.dumps(chosen_foods))
+    return Response(chosen_foods)
