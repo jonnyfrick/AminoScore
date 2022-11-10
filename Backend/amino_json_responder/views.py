@@ -6,6 +6,11 @@ import random
 from amino_json_responder import models
 from amino_json_responder import serializers
 from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 #from amino_json_responder import fill_models
@@ -18,12 +23,22 @@ class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Food.objects.filter(food_category__vegan = True)
     serializer_class = serializers.FoodSerializer
 
+class APIViewTestClass(APIView):
+
+    def get(self, request, test_param, format = None):
+
+        test_dict = {"TestKey": 34, "K2": 45}
+
+        return Response(test_dict)
+
+
+@api_view()
 def get_nutrients_list(request):
 
-    return HttpResponse(json.dumps(models.Food.get_nutrients_keys()))
+    return Response(models.Food.get_nutrients_keys())
 
-
-def get_foods(request, restriction):
+@api_view()
+def get_foods(request, restriction, second_param):
 
     found_foods = []
 
@@ -37,7 +52,7 @@ def get_foods(request, restriction):
     for current_food in foods_query_set:
         found_foods.append(current_food.food_name)
 
-    return HttpResponse(json.dumps(found_foods))
+    return Response(found_foods)
 
 
 
