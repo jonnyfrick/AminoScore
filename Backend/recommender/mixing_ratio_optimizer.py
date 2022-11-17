@@ -2,15 +2,23 @@
 #from recommender import NutrientsPattern
 import numpy as np
 from scipy.optimize import minimize, Bounds
+from recommender import knowledge_base
 import random
 
-def optimize_mixing_ratio(nutrients_lists):
+
+
+
+def optimize_mixing_ratio(nutrients_lists, age, weight):
 
     x0 = np.ones(len(nutrients_lists))
-    foods = np.array(nutrients_lists)
+    nutrients_matrix = np.array(nutrients_lists)
+
+    print(nutrients_matrix)
+
+    relative_nutrients_matrix = knowledge_base.calculate_normalized_intake(nutrients_matrix, age, weight)
 
     positive_bounds = Bounds(0, 10)
-    opmizer_output = minimize(criterion, x0, foods, bounds = positive_bounds)
+    opmizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
     mixing_ratio = opmizer_output.x
     print(mixing_ratio.mean())
     normalized_mixing_ratio = mixing_ratio / mixing_ratio.sum()

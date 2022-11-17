@@ -3,6 +3,7 @@ from django.http import HttpResponse
 import json
 #import os
 import random
+from django.db.models.functions import Length
 from amino_json_responder import models
 from amino_json_responder import serializers
 from rest_framework import viewsets
@@ -28,16 +29,25 @@ class GetOptimizedMixingRatioAPIView(APIView):
     def get(self, request, format = None):
 
         foods = json.loads(request.query_params.get('Foods'))
+        age = json.loads(request.query_params.get('Age'))
+        weight = json.loads(request.query_params.get('Weight'))
 
-        foods_nutrients = []
+        foods_nutrients = {}
         
         for current_food in foods:
-            requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food)[:1]
-            foods_nutrients.append(requested_food_query_set[0].get_nutrients_values())
+            requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food).order_by(Length('food_name').asc())[:1]
+            single_record = requested_food_query_set[0]
+            foods_nutrients[single_record.food_name] = single_record.get_nutrients_values()
 
-        normalized_mixing_ratio = mixing_ratio_optimizer.optimize_mixing_ratio(foods_nutrients)
+        normalized_mixing_ratio = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
 
-        return Response(normalized_mixing_ratio)
+        mixing_ratios_dict = {}
+
+        foods_list = list(foods_nutrients.keys())
+        for i in range(len(foods_list)):
+            mixing_ratios_dict[foods_list[i]] = normalized_mixing_ratio[i]
+
+        return Response(mixing_ratios_dict)
 
 
 @api_view()
@@ -58,6 +68,7 @@ def get_foods(request, restriction):
         foods_query_set = models.Food.objects.filter(food_category__vegan = True)
 
     for current_food in foods_query_set:
+
         found_foods.append(current_food.food_name)
 
     return Response(found_foods)

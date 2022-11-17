@@ -1,8 +1,9 @@
 import json
 from builtins import print
-from amino_json_responder import models
+import os
+#from amino_json_responder import models
 
-flush_json = False
+flush_json = True
 
 
 essentials = (
@@ -10,6 +11,13 @@ essentials = (
 #kids_supplement = ("Tyrosine")
 kids_essentials = (
     "Histidine", "Isoleucine", "Leucine", "Lysine", "Methionine", "Phenylalanine", "Threonine", "Tryptophan", "Valine", "Tyrosine")
+
+optional_amino_acids = ("Cystine",)
+
+basic_properties = ("Protein", "Carbohydrate, by difference", "Total lipid (fat)")
+
+compare_carbo = ("Carbohydrate, by difference", "Carbohydrate, by summation")
+
 cond_essentials = ("Arginine", "Glutamine", "Cysteine", "Glycine", "Proline", "Tyrosine") #Glutamine not present in dataset
 # non_essetials = ("Alanine", "Aspartic acid", "Asparagine", "Glutamic acid", "Serine", "Selenocysteine") #Asparagine, Selenocysteine not present
 
@@ -38,9 +46,9 @@ def parse_nutrients(food_list, amino_acids, output_foods):
         if found_acids_in_current == len(amino_acids):
             print(str(match_number), str(food_number), current_food["description"], current_output_food_nutrients)
             add_to_category(output_foods, current_food["foodCategory"]["description"], current_food["description"], current_output_food_nutrients.copy())
-            current_output_food_nutrients = []
             match_number += 1
 
+        current_output_food_nutrients = []
         found_acids_in_current = 0
         food_number += 1
 
@@ -68,7 +76,7 @@ def print_categories(input_set):
 
 #execution code
 
-nutrients_list = kids_essentials
+nutrients_list = ("Carbohydrate, by summation",)# list(kids_essentials) + list(basic_properties)# + list(optional_amino_acids)
 
 output_file = open("NutrientsList.json", "w")
 output_file.write(json.dumps(nutrients_list))
@@ -76,13 +84,17 @@ output_file.close()
 
 output_foods = {}
 
-with open("./DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json") as food_data_file:
-    global_food_data = json.load(food_data_file)
-    global_legacy_food_list = global_food_data["SRLegacyFoods"]
+script_dir = os.path.dirname(__file__)
 
-output_foods = parse_nutrients(global_legacy_food_list, nutrients_list, output_foods)
+# rel_path = "DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json"
+# with open(os.path.join(script_dir, rel_path)) as food_data_file:
+#     global_food_data = json.load(food_data_file)
+#     global_legacy_food_list = global_food_data["SRLegacyFoods"]
 
-with open("./DataSets/FoodData_Central_foundation_food_json_2022-04-28.json") as food_data_file:
+# output_foods = parse_nutrients(global_legacy_food_list, nutrients_list, output_foods)
+
+rel_path = "DataSets/FoodData_Central_foundation_food_json_2022-10-28.json"
+with open(os.path.join(script_dir, rel_path)) as food_data_file:
     global_food_data = json.load(food_data_file)
     global_foundation_food_list = global_food_data["FoundationFoods"]
 
@@ -92,7 +104,8 @@ output_foods = parse_nutrients(global_foundation_food_list, nutrients_list, outp
 
 if flush_json:
     #print(json.dumps(output_foods))
-    output_file = open("ProcessedFoodData.json", "w")
+    rel_path = "ProcessedFoodData.json"
+    output_file = open(os.path.join(script_dir, rel_path), "w")
     output_file.write(json.dumps(output_foods))
     output_file.close()
 
