@@ -1,5 +1,5 @@
-from lzma import FILTER_LZMA1
 from amino_json_responder import models
+
 import json
 
 fill_database = True
@@ -43,19 +43,19 @@ def fill_all_models(output_foods):
         current_food_category_entry.save()
         print("adding: " + current_category_key)
 
-        for current_food_key, curren_food_nutrients in current_category_value.items():
+        for current_food_key, current_food_nutrients in current_category_value.items():
             current_food_entry = models.Food(
                 food_name = current_food_key,
-                Histidine = curren_food_nutrients[0],
-                Isoleucine = curren_food_nutrients[1],
-                Leucine = curren_food_nutrients[2],
-                Lysine = curren_food_nutrients[3],
-                Methionine = curren_food_nutrients[4],
-                Phenylalanine = curren_food_nutrients[5],
-                Threonine = curren_food_nutrients[6],
-                Tryptophan = curren_food_nutrients[7],
-                Valine = curren_food_nutrients[8],
-                Tyrosine = curren_food_nutrients[9],
+                Histidine = current_food_nutrients[0],
+                Isoleucine = current_food_nutrients[1],
+                Leucine = current_food_nutrients[2],
+                Lysine = current_food_nutrients[3],
+                Methionine = current_food_nutrients[4],
+                Phenylalanine = current_food_nutrients[5],
+                Threonine = current_food_nutrients[6],
+                Tryptophan = current_food_nutrients[7],
+                Valine = current_food_nutrients[8],
+                Tyrosine = current_food_nutrients[9],
                 food_category = current_food_category_entry)
             current_food_entry.save()
 
