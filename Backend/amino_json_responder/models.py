@@ -18,16 +18,25 @@ class FoodCategory(models.Model):
 class Food(models.Model):
     food_category = models.ForeignKey(FoodCategory, null = True, on_delete = models.SET_NULL)
     food_name = models.CharField(max_length = 80)
-    Histidine = models.FloatField()
-    Isoleucine = models.FloatField()
-    Leucine = models.FloatField()
-    Lysine = models.FloatField()
-    Methionine = models.FloatField()
-    Phenylalanine = models.FloatField()
-    Threonine = models.FloatField()
-    Tryptophan = models.FloatField()
-    Valine = models.FloatField()
-    Tyrosine = models.FloatField()
+    
+    Histidine = models.FloatField(default = 0)
+    Isoleucine = models.FloatField(default = 0)
+    Leucine = models.FloatField(default = 0)
+    Lysine = models.FloatField(default = 0)
+    Methionine = models.FloatField(default = 0)
+    Phenylalanine = models.FloatField(default = 0)
+    Threonine = models.FloatField(default = 0)
+    Tryptophan = models.FloatField(default = 0)
+    Valine = models.FloatField(default = 0)
+    Tyrosine = models.FloatField(default = 0)
+    CystEine = models.FloatField(default = 0)
+    IsTrueCysteine = models.BooleanField(default = False)
+
+    TotalProtein = models.FloatField(default = 0)
+    TotalFat = models.FloatField(default = 0)
+    TotalCarbohydrates = models.FloatField(default = 0)
+
+    TotalEnergy = models.FloatField(default = 0)
 
     def __str__(self):
         return self.food_name

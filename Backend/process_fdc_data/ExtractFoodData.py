@@ -14,7 +14,7 @@ kids_essentials = (
 
 optional_amino_acids = ("Cystine",)
 
-basic_properties = ("Protein", "Carbohydrate, by difference", "Total lipid (fat)")
+basic_properties = ("Energy", "Protein", "Carbohydrate, by difference", "Total lipid (fat)")
 
 compare_carbo = ("Carbohydrate, by difference", "Carbohydrate, by summation")
 
@@ -76,7 +76,7 @@ def print_categories(input_set):
 
 #execution code
 
-nutrients_list = ("Carbohydrate, by summation",)# list(kids_essentials) + list(basic_properties)# + list(optional_amino_acids)
+nutrients_list = ("Cystine",)# list(kids_essentials) + list(basic_properties)# + list(optional_amino_acids)
 
 output_file = open("NutrientsList.json", "w")
 output_file.write(json.dumps(nutrients_list))

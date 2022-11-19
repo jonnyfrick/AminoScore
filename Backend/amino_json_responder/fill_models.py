@@ -2,7 +2,7 @@ from amino_json_responder import models
 
 import json
 
-fill_database = True
+fill_database = False
 
 vegan_keywords = ["baked", "vegetable", "fruit", "legume", "cereal", "spice", "herb", "grains", "pasta"]
 vegetarian_keywords =["diary", "milk", "egg"]

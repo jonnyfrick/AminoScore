@@ -14,7 +14,8 @@ from recommender import mixing_ratio_optimizer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-#from amino_json_responder import fill_models
+#from amino_json_responder import fill_models_from_fdc_data
+
 
 #print(os.path.abspath("./../../process_fdc_data/ProcessedFoodData.json"))
 
