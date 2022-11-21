@@ -1,4 +1,4 @@
-import axios from "axios";
+//import axios from "axios";
 import React, { useEffect, useMemo, useState } from "react";
 import { useGlobalFilter, useSortBy, useTable } from "react-table";
 import tw from "twin.macro";
@@ -51,66 +51,45 @@ const Button = tw.button`
   transition-colors
 `;
 
-export function Products(props) {
-  const [products, setProducts] = useState([]);
 
-  const fetchProducts = async () => {
-    const response = await axios
-      .get("https://fakestoreapi.com/products")
-      .catch((err) => console.log(err));
+export function Products({food}) {
+  // const [products, setProducts] = useState([]);
 
-    if (response) {
-      const products = response.data;
+  // const fetchProducts = async () => {
+  //   const response = await axios
+  //     .get("https://fakestoreapi.com/products")
+  //     .catch((err) => console.log(err));
 
-      console.log("Products: ", products);
-      setProducts(products);
-    }
+  //   if (response) {
+  //     const products = response.data;
+
+  //     console.log("Products: ", products);
+  //     setProducts(products);
+  //   }
+  // };
+
+  
+
+  const [aminoArray, setAminoArray] = useState(food);
+
+
+  const handleAddAmino = () => {
+    let arr = [...aminoArray]
+    arr.push(
+      {
+        id: 6,
+        name: "Pee wee",
+        aminos: [0.229, 0.806, 0.92, 1.88, 0.951, 0.29, 1.5, 1.06, 1.12, 0.676],
+        KCal: 50.95
+      })
+      setAminoArray(arr)
   };
-
-  const data = useMemo(
-    () => [
-      {
-        id: 1,
-        name: "Udi's, Gluten Free",
-        KCal: 50.95,
-        description:
-          "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
-        category: "men's clothing",
-        image: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
-        rating: {
-          rate: 3.9,
-          count: 120,
-        },
-      },
-      {
-        id: 2,
-        name: "pan de torta salvadoran",
-        KCal: 209.95,
-        description:
-          "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
-        category: "men's clothing",
-        image: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
-        rating: {
-          rate: 3.9,
-          count: 120,
-        },
-      },
-      {
-        id: 3,
-        name: "Pie, pecan, commercially prepared",
-        KCal: 259.95,
-        description:
-          "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
-        category: "men's clothing",
-        image: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
-        rating: {
-          rate: 3.9,
-          count: 120,
-        },
-      },
-    ],
-    []
-  );
+  
+  useEffect(() => {
+      handleAddAmino();
+   }, []);
+  
+  
 
   const columns = useMemo(
     () => [
@@ -130,29 +109,11 @@ export function Products(props) {
     []
   );
 
-  const productsData = useMemo(() => [...products], [products]);
 
-  const productsColumns = useMemo(
-    () =>
-      products[0]
-        ? Object.keys(products[0])
-            .filter((key) => key !== "rating")
-            .filter((key) => key !== "description")
-            .filter((key) => key !== "image")
-            .map((key) => {
-              if (key === "image")
-                return {
-                  Header: key,
-                  accessor: key,
-                  Cell: ({ value }) => <p></p>,
-                  maxWidth: 1, 
-                };
+  const fetchAminos = (id) => {
+    return aminoArray[id].aminos
+  }
 
-              return { Header: key, accessor: key };
-            })
-        : [],
-    [products]
-  );
 
   const tableHooks = (hooks) => {
     hooks.visibleColumns.push((columns) => [
@@ -161,9 +122,10 @@ export function Products(props) {
         id: "Edit",
         Header: "Edit",
         Cell: ({ row }) => (
-          <Button onClick={() => alert("Editing: " + row.values.price)}>
-            Add
+          <Button onClick={() => alert("Editing: " + row.values.id)}>
+            Mad
           </Button>
+          
         ),
       },
     ]);
@@ -172,7 +134,7 @@ export function Products(props) {
   const tableInstance = useTable(
     {
       columns: columns,
-      data: data,
+      data: aminoArray,
     },
     useGlobalFilter,
     tableHooks,
@@ -190,9 +152,9 @@ export function Products(props) {
     state,
   } = tableInstance;
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // useEffect(() => {
+  //   fetchProducts();
+  // }, []);
 
   const isEven = (idx) => idx % 2 === 0;
 
