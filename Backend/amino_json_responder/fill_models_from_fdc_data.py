@@ -159,6 +159,7 @@ def parse_nutrients(food_list, model_fields_map):
             print(str(match_number), str(food_number),
                   current_food["description"])
             current_row_model.food_name = current_food["description"]
+            current_row_model.fdc_id = current_food["fdcId"]
             category_name = current_food["foodCategory"]["description"]
             category = add_to_category(category_name)
             current_row_model.food_category = category
@@ -170,22 +171,18 @@ def parse_nutrients(food_list, model_fields_map):
         found = False
 
 
-script_dir = os.path.dirname(__file__)
-rel_path = "../process_fdc_data/DataSets/FoodData_Central_foundation_food_json_2022-10-28.json"
-with open(os.path.join(script_dir, rel_path)) as food_data_file:
-    global_food_data = json.load(food_data_file)
-    global_foundation_food_list = global_food_data["FoundationFoods"]
+def fill_models_with_fdc_data(root_key, rel_path):
+    script_dir = os.path.dirname(__file__)
+    with open(os.path.join(script_dir, rel_path)) as food_data_file:
+        global_food_data = json.load(food_data_file)
+        food_list = global_food_data[root_key]
+    parse_nutrients(food_list, model_fields_to_fdc_map)
+    
 
-rel_path = "../process_fdc_data/DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json"
-with open(os.path.join(script_dir, rel_path)) as food_data_file:
-    global_food_data = json.load(food_data_file)
-    global_legacy_food_list = global_food_data["SRLegacyFoods"]
-
-
-def refresh_all_models():
+def clear_all_models():
     models.Food.objects.all().delete()
     models.FoodCategory.objects.all().delete()
 
-# refresh_all_models()
-# parse_nutrients(global_foundation_food_list, model_fields_to_fdc_map)
-# parse_nutrients(global_legacy_food_list, model_fields_to_fdc_map)
+# clear_all_models()
+# fill_models_with_fdc_data("FoundationFoods", "../process_fdc_data/DataSets/FoodData_Central_foundation_food_json_2022-10-28.json")
+# fill_models_with_fdc_data("SRLegacyFoods", "../process_fdc_data/DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json")

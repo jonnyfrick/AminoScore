@@ -17,7 +17,7 @@ import copy
 # Methionine: 10.4
 # Cysteine: 4.1
 
-class NutrientsPattern():
+class WhoPattern():
 
     def __init__(self,
                  histidine = 0,
@@ -25,7 +25,7 @@ class NutrientsPattern():
                  leucine = 0,
                  lysine = 0,
                  methionine_plus_cysteine = 0,
-                 phenylaline_plus_tyrosine = 0,
+                 phenylalanine_plus_tyrosine = 0,
                  threonine = 0,
                  tryptophan = 0,
                  valine = 0):
@@ -33,13 +33,25 @@ class NutrientsPattern():
         self.isoleucine = isoleucine
         self.leucine = leucine
         self.lysine = lysine
-        self.methmethionine_plus_cysteine = methionine_plus_cysteine
-        self.phenylaline_plus_tyrosine = phenylaline_plus_tyrosine
+        self.methionine_plus_cysteine = methionine_plus_cysteine
+        self.phenylaline_plus_tyrosine = phenylalanine_plus_tyrosine
         self.threonine = threonine
         self.tryptophan = tryptophan
         self.valine = valine
 
-    
+    def to_list(self):
+        fields_dict = self.__dict__
+        return list(fields_dict.values())
+        
+
+    def to_np_array(self):
+        fields_values_list = self.to_list()
+        return np.array(fields_values_list)
+
+    def get_fields_keys(self):
+
+        members_keys_list = list(self.__dict__.keys())
+        return members_keys_list
 
     def mult_scalar(self, scalar):
 
@@ -137,9 +149,9 @@ class NutrientsPattern():
 # tissue_requirements_pattern = NutrientsPattern(27, 35, 75, 73, 35, 73, 42, 12, 49)
 # maintainance_requirements_pattern = NutrientsPattern(15, 30, 59, 45, 22, 38, 23, 6, 39)
 
-tissue_requirements_pattern = np.array([27, 35, 75, 73, 35, 73, 42, 12, 49])
+tissue_requirements_pattern = np.array([27, 35, 75, 73, 35, 73, 42, 12, 49]) / 1000.0
 
-maintainance_requirements_pattern = np.array([15, 30, 59, 45, 22, 38, 23, 6, 39])
+maintainance_requirements_pattern = np.array([15, 30, 59, 45, 22, 38, 23, 6, 39]) / 1000.0
 
 tissue_factors = {
     'age':      [0.5,  1,   3,    15,   18],
@@ -150,8 +162,8 @@ maintanance_factor = 0.66
 
 def calculate_requirements(age, weight_kg):
     tissue_factor = np.interp(age, tissue_factors['age'], tissue_factors['factor'])
-    requirements_per_kg = tissue_requirements_pattern * tissue_factor + maintainance_requirements_pattern * maintanance_factor
-    return requirements_per_kg * weight_kg
+    requirements_per_kg_mg = tissue_requirements_pattern * tissue_factor + maintainance_requirements_pattern * maintanance_factor
+    return requirements_per_kg_mg * weight_kg
 
 def calculate_normalized_intake_from_requiremts(intake_pattern, absolute_requirements):
     return intake_pattern / absolute_requirements
@@ -166,17 +178,39 @@ def calculate_realtive_balance(intake_pattern):
 
     return mean
 
+def calculate_who_patterns(food_amino_acids_dicts):
 
-print(tissue_requirements_pattern / maintainance_requirements_pattern)
+    who_patterns_lists = []
+    for current_food_amino_acids_dict in food_amino_acids_dicts:
+        current_pattern = WhoPattern(
+            histidine = current_food_amino_acids_dict["Histidine"],
+            isoleucine = current_food_amino_acids_dict["Isoleucine"],
+            leucine = current_food_amino_acids_dict["Leucine"],
+            lysine = current_food_amino_acids_dict["Lysine"],
+            methionine_plus_cysteine = current_food_amino_acids_dict["Methionine"] + current_food_amino_acids_dict["CystEine"] ,
+            phenylalanine_plus_tyrosine = current_food_amino_acids_dict["Phenylalanine"] + current_food_amino_acids_dict["Tyrosine"],
+            threonine = current_food_amino_acids_dict["Threonine"],
+            tryptophan = current_food_amino_acids_dict["Tryptophan"],
+            valine = current_food_amino_acids_dict["Valine"]
+        )
+        who_patterns_lists.append(current_pattern.to_list())
 
-print(calculate_requirements(40, 85).__str__())
+    return who_patterns_lists
 
-print(tissue_requirements_pattern)
 
-print(calculate_realtive_balance(tissue_requirements_pattern))
-print(tissue_requirements_pattern)
-print(maintainance_requirements_pattern)
+def get_who_pattern_keys():
+    return WhoPattern().get_fields_keys()
 
-maintainance_requirements_pattern
+# print(tissue_requirements_pattern / maintainance_requirements_pattern)
+
+# print(calculate_requirements(40, 85).__str__())
+
+# print(tissue_requirements_pattern)
+
+# print(calculate_realtive_balance(tissue_requirements_pattern))
+# print(tissue_requirements_pattern)
+# print(maintainance_requirements_pattern)
+
+# maintainance_requirements_pattern
 
 #print(tissue_requirements_pattern.mean_deviation())

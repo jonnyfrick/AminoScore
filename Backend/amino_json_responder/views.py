@@ -10,6 +10,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from recommender import mixing_ratio_optimizer
+from recommender import knowledge_base
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -27,6 +28,7 @@ class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class GetOptimizedMixingRatioAPIView(APIView):
 
+
     def get(self, request, format = None):
 
         foods = json.loads(request.query_params.get('Foods'))
@@ -37,19 +39,49 @@ class GetOptimizedMixingRatioAPIView(APIView):
         
         for current_food in foods:
             requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food).order_by(Length('food_name').asc())[:1]
-            single_record = requested_food_query_set[0]
-            foods_nutrients[single_record.food_name] = single_record.get_nutrients_values()
+            if len(requested_food_query_set) != 0:
+                single_record = requested_food_query_set[0]
+                foods_nutrients[single_record.food_name] = single_record.get_nutrients()
 
-        normalized_mixing_ratio = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
+
+        normalized_mixing_ratio, relative_nutrients_matrix, members_keys_list = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
+
+        #response = self.__generate_pure_proportions_output(foods_nutrients, normalized_mixing_ratio)
+        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, members_keys_list, normalized_mixing_ratio, relative_nutrients_matrix)
+
+        return Response(response)
+
+    def __generate_pure_proportions_output(self, foods_nutrients, normalized_mixing_ratio):
 
         mixing_ratios_dict = {}
-
         foods_list = list(foods_nutrients.keys())
+
         for i in range(len(foods_list)):
             mixing_ratios_dict[foods_list[i]] = normalized_mixing_ratio[i]
 
-        return Response(mixing_ratios_dict)
+        return mixing_ratios_dict
+            
 
+    def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix):
+        mixing_ratios_dict = {}
+        foods_list = list(foods_nutrients.keys())
+        for i in range(len(foods_list)):
+            proportion_dict = {}
+            proportion_dict["Proportion"] = normalized_mixing_ratio[i]
+            nutrients_coverage = list(relative_nutrients_matrix[i])
+            coverage_dict = {foods_nutrients_list[j]: nutrients_coverage[j] for j in range(len(nutrients_coverage))}
+            proportion_dict["100_g_coverage"] = coverage_dict
+            mixing_ratios_dict[foods_list[i]] = proportion_dict
+
+        return mixing_ratios_dict
+        
+
+
+class GetNormalizedRequirementsAPIView(APIView):
+
+    def get(self, request, format = None):
+
+        return Response()
 
 @api_view()
 def get_nutrients_list(request):
@@ -91,7 +123,7 @@ def get_nutrients_info(request, exact_food_key_string):
     
     try:
         requested_food_query_set = models.Food.objects.get(food_name = exact_food_key_string)
-        response = requested_food_query_set.get_nutrients_values()
+        response = requested_food_query_set.get_nutrients()
     except(models.Food.DoesNotExist):
         response = "key not found"
 
@@ -107,6 +139,6 @@ def get_recommended_foods(request):
 
     for i in range(5):
         found_food = random.choice(foods_query_set)
-        chosen_foods[found_food.food_name] = found_food.get_nutrients_values()
+        chosen_foods[found_food.food_name] = found_food.get_nutrients()
 
     return Response(chosen_foods)

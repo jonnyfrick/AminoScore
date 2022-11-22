@@ -3,7 +3,8 @@ from django.forms.models import model_to_dict
 
 # Create your models here.
 
-food_model_header_fields = 3
+food_model_header_fields = 4
+n_aminos = 11
 
 
 class FoodCategory(models.Model):
@@ -18,6 +19,7 @@ class FoodCategory(models.Model):
 class Food(models.Model):
     food_category = models.ForeignKey(FoodCategory, null = True, on_delete = models.SET_NULL)
     food_name = models.CharField(max_length = 80)
+    fdc_id = models.BigIntegerField(default = 0)
     
     Histidine = models.FloatField(default = 0)
     Isoleucine = models.FloatField(default = 0)
@@ -47,6 +49,19 @@ class Food(models.Model):
         nutrients_keys_list = list(model_to_dict(Food).keys())
         return nutrients_keys_list[food_model_header_fields:]
 
+    def get_nutrients(self):
+        nutrients_dict = model_to_dict(self)
+        for current_key_to_drop in list(nutrients_dict.keys())[:food_model_header_fields]:
+            nutrients_dict.pop(current_key_to_drop, None)
+        return nutrients_dict
+
+    def get_amino_acids_dict(self):
+        nutrients_dict = self.get_nutrients()
+        for current_key_to_drop in list(nutrients_dict.keys())[n_aminos:]:
+            nutrients_dict.pop(current_key_to_drop, None)
+        return nutrients_dict
+
+
     def get_nutrients_values(self):
         
         food_dict = model_to_dict(self)
@@ -57,6 +72,13 @@ class Food(models.Model):
 
         name_nutrients_dict  = {self.food_name: self.get_nutrients_values()}
         return name_nutrients_dict
+
+    
+
+
+
+
+
     
 
 
