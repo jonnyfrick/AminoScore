@@ -31,7 +31,7 @@ def optimize_mixing_ratio(food_nutrients_dicts, age, weight):
     x0 = set_initial_values(nutrients_lists)
     print("x0: ", str(x0))
 
-    positive_bounds = Bounds(0, 10)
+    positive_bounds = Bounds(0.01, 10)
     opmizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
 
     mixing_ratio = opmizer_output.x
