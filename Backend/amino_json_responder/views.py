@@ -44,10 +44,10 @@ class GetOptimizedMixingRatioAPIView(APIView):
                 foods_nutrients[single_record.food_name] = single_record.get_nutrients()
 
 
-        normalized_mixing_ratio, relative_nutrients_matrix, members_keys_list = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
+        normalized_mixing_ratio, relative_nutrients_matrix, output_keys_list = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
 
         #response = self.__generate_pure_proportions_output(foods_nutrients, normalized_mixing_ratio)
-        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, members_keys_list, normalized_mixing_ratio, relative_nutrients_matrix)
+        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, output_keys_list, normalized_mixing_ratio, relative_nutrients_matrix)
 
         return Response(response)
 
@@ -63,17 +63,28 @@ class GetOptimizedMixingRatioAPIView(APIView):
             
 
     def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix):
-        mixing_ratios_dict = {}
-        foods_list = list(foods_nutrients.keys())
-        for i in range(len(foods_list)):
+        output_dict = {}
+        
+        foods_nutrients_keys_list = list(foods_nutrients.keys())
+        foods_nutrients_values_list = list(foods_nutrients.values())
+        for i in range(len(foods_nutrients_keys_list)):
             proportion_dict = {}
             proportion_dict["Proportion"] = normalized_mixing_ratio[i]
             nutrients_coverage = list(relative_nutrients_matrix[i])
-            coverage_dict = {foods_nutrients_list[j]: nutrients_coverage[j] for j in range(len(nutrients_coverage))}
+            coverage_dict = {foods_nutrients_list[j]: nutrients_coverage[j] for j in range(len(nutrients_coverage))}          
             proportion_dict["100_g_coverage"] = coverage_dict
-            mixing_ratios_dict[foods_list[i]] = proportion_dict
+            combined_parts_dict = {}
+            combined_parts_dict["methionine_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Methionine"], foods_nutrients_values_list[i]["CystEine"])
+            combined_parts_dict["phenylalaline_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Phenylalanine"], foods_nutrients_values_list[i]["Tyrosine"])
+            proportion_dict["Combined Parts"] = combined_parts_dict
+            output_dict[foods_nutrients_keys_list[i]] = proportion_dict
 
-        return mixing_ratios_dict
+        return output_dict
+
+    def __calculate_relative_part(self, relative_part_of_this, second_in_sum):
+
+        return relative_part_of_this / (relative_part_of_this + second_in_sum)
+
         
 
 
