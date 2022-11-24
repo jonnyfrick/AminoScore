@@ -5,15 +5,19 @@ from scipy.optimize import minimize, Bounds
 from recommender import knowledge_base
 import random
 
-SIGNIFICANCE_LEVEL = 0.1
+ALL_AMINO_ACIDS_SIGNIFICANCE_LEVEL = 0.1
+#PROPORTION_SIGNIFICANCE_LEVEL = 0.01
 
 def set_initial_values(relative_nutrients_matrix):
     x0 = np.ones(len(relative_nutrients_matrix))
-    #x0 = np.random.rand(len(nutrients_lists))
+    
     for i in range(len(x0)):
         over_all_contribution_value = sum(relative_nutrients_matrix[i]) 
-        if over_all_contribution_value < SIGNIFICANCE_LEVEL:
+        if over_all_contribution_value < ALL_AMINO_ACIDS_SIGNIFICANCE_LEVEL:
             x0[i] = 0
+        else:
+            x0[i] = 1 / over_all_contribution_value
+    #x0 = np.random.rand(len(relative_nutrients_matrix))
     return x0
 
 def optimize_mixing_ratio(food_nutrients_dicts, age, weight):
@@ -31,10 +35,15 @@ def optimize_mixing_ratio(food_nutrients_dicts, age, weight):
     x0 = set_initial_values(nutrients_lists)
     print("x0: ", str(x0))
 
-    positive_bounds = Bounds(0.01, 10)
-    opmizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
+    positive_bounds = Bounds(0.01 / 5 , x0.max() * 5)
 
+    opmizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
     mixing_ratio = opmizer_output.x
+    for i in range(len(x0)):
+        if x0[i] == 0:
+            mixing_ratio[i] = 0
+
+
     normalized_mixing_ratio = mixing_ratio / mixing_ratio.sum()
 
     #print("Nit: " + str(opmizer_output.nit))

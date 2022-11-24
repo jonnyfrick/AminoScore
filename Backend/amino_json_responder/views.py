@@ -8,6 +8,7 @@ from amino_json_responder import models
 from amino_json_responder import serializers
 from rest_framework import viewsets
 from rest_framework.views import APIView
+
 from rest_framework.response import Response
 from recommender import mixing_ratio_optimizer
 from recommender import knowledge_base
@@ -26,10 +27,10 @@ class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Food.objects.filter(food_category__vegan = True)
     serializer_class = serializers.FoodSerializer
 
-class GetOptimizedMixingRatioAPIView(APIView):
+class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
 
 
-    def get(self, request, format = None):
+    def list(self, request, format = None):
 
         foods = json.loads(request.query_params.get('Foods'))
         age = json.loads(request.query_params.get('Age'))
@@ -83,7 +84,13 @@ class GetOptimizedMixingRatioAPIView(APIView):
 
     def __calculate_relative_part(self, relative_part_of_this, second_in_sum):
 
-        return relative_part_of_this / (relative_part_of_this + second_in_sum)
+        denominator = relative_part_of_this + second_in_sum
+
+        if denominator == 0:
+            relative_part = 0.0
+        else:
+            relative_part = relative_part_of_this / denominator
+        return  relative_part
 
         
 
