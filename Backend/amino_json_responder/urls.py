@@ -5,7 +5,10 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'get_via_serializer', views.ContainingFoodsViewSet)
-router.register(r'optimize_mixing_ratio', views.GetOptimizedMixingRatioViewSet, basename='Dummy')
+router.register(r'get_optimized_mixing_ratio', views.GetOptimizedMixingRatioViewSet, basename='Dummy')
+router.register(r'get_recommendations', views.GetRecommendationsViewSet, basename='Dummy')
+router.register(r'get_high_scores', views.GetHighScoresViewSet, basename='Dummy')
+
 
 urlpatterns = [
     path("", include(router.urls)),

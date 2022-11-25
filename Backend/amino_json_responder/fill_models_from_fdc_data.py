@@ -139,6 +139,8 @@ def parse_nutrients(food_list, model_fields_map):
     found_fields_in_current = 0
     found = False
 
+    model_rows_list = []
+
     for current_food in food_list:
         nutrients = current_food["foodNutrients"]
         current_row_model = models.Food()
@@ -163,12 +165,14 @@ def parse_nutrients(food_list, model_fields_map):
             category_name = current_food["foodCategory"]["description"]
             category = add_to_category(category_name)
             current_row_model.food_category = category
-            current_row_model.save()
+            model_rows_list.append(current_row_model)
             match_number += 1
 
         found_fields_in_current = 0
         food_number += 1
         found = False
+    
+    models.Food.objects.bulk_create(model_rows_list)
 
 
 def fill_models_with_fdc_data(root_key, rel_path):

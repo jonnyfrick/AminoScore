@@ -165,8 +165,14 @@ def calculate_requirements(age, weight_kg):
     requirements_per_kg_mg = tissue_requirements_pattern * tissue_factor + maintainance_requirements_pattern * maintanance_factor
     return requirements_per_kg_mg * weight_kg
 
+def calculate_adult_requirements_per_kg_mg():
+    return maintainance_requirements_pattern * maintanance_factor
+
 def calculate_normalized_intake_from_requiremts(intake_pattern, absolute_requirements):
     return intake_pattern / absolute_requirements
+
+def calculate_adult_normalized_intake_per_kg_mg(intake_pattern):
+    return calculate_normalized_intake_from_requiremts(intake_pattern, calculate_adult_requirements_per_kg_mg())
 
 def calculate_normalized_intake(intake_pattern, age, weight_kg):
     return calculate_normalized_intake_from_requiremts(intake_pattern, calculate_requirements(age, weight_kg))

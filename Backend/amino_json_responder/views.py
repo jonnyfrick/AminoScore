@@ -9,7 +9,6 @@ from amino_json_responder import serializers
 from rest_framework import viewsets
 from rest_framework.views import APIView
 
-from rest_framework.response import Response
 from recommender import mixing_ratio_optimizer
 from recommender import knowledge_base
 
@@ -17,7 +16,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 #from amino_json_responder import fill_models_from_fdc_data
-
+#from recommender import complementary_pairs_finder
 
 #print(os.path.abspath("./../../process_fdc_data/ProcessedFoodData.json"))
 
@@ -45,10 +44,10 @@ class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
                 foods_nutrients[single_record.food_name] = single_record.get_nutrients()
 
 
-        normalized_mixing_ratio, relative_nutrients_matrix, output_keys_list = mixing_ratio_optimizer.optimize_mixing_ratio(list(foods_nutrients.values()), age, weight)
+        normalized_mixing_ratio, relative_nutrients_matrix, output_keys_list, score = mixing_ratio_optimizer.optimize_mixing_ratio_for_person_who_recommendation(list(foods_nutrients.values()), age, weight)
 
         #response = self.__generate_pure_proportions_output(foods_nutrients, normalized_mixing_ratio)
-        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, output_keys_list, normalized_mixing_ratio, relative_nutrients_matrix)
+        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, output_keys_list, normalized_mixing_ratio, relative_nutrients_matrix, score)
 
         return Response(response)
 
@@ -63,11 +62,12 @@ class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
         return mixing_ratios_dict
             
 
-    def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix):
+    def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix, score):
         output_dict = {}
-        
+        output_dict["Score"] = score
         foods_nutrients_keys_list = list(foods_nutrients.keys())
         foods_nutrients_values_list = list(foods_nutrients.values())
+
         for i in range(len(foods_nutrients_keys_list)):
             proportion_dict = {}
             proportion_dict["Proportion"] = normalized_mixing_ratio[i]
@@ -92,7 +92,59 @@ class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
             relative_part = relative_part_of_this / denominator
         return  relative_part
 
+    
+class GetRecommendationsViewSet(viewsets.ViewSet):
+
+    def list(self, request, format = None):
+
+        foods = json.loads(request.query_params.get('Foods'))
+        age = json.loads(request.query_params.get('Age'))
+        weight = json.loads(request.query_params.get('Weight'))
+
         
+        out_dict = {}
+
+        for current_food in foods:
+            matching_foods_dict = {}
+            requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food).order_by(Length('food_name').asc())[:1]
+            if(len(requested_food_query_set) != 0):
+                current_name = requested_food_query_set[0].food_name
+                complementary_pairs_query_set = models.ComplementaryPair.objects.filter(food_1__food_name = current_name).order_by(('-score'))[:10]
+                for current_pair in  complementary_pairs_query_set:
+                    current_complementary = current_pair.food_2
+                    matching_foods_dict[current_complementary.food_name] = current_pair.score
+
+                complementary_pairs_query_set = models.ComplementaryPair.objects.filter(food_2__food_name = current_name).order_by(('-score'))[:10]
+                for current_pair in  complementary_pairs_query_set:
+                    current_complementary = current_pair.food_1
+                    matching_foods_dict[current_complementary.food_name] = current_pair.score
+
+                out_dict[current_name] = matching_foods_dict
+
+        return Response(out_dict)
+
+class GetHighScoresViewSet(viewsets.ViewSet):
+
+    def list(self, request, format = None):
+        complementary_pairs_query_set = models.ComplementaryPair.objects.all().order_by(('-score'))[:100]
+
+        return Response(self.__serialize_query_set(complementary_pairs_query_set))
+
+
+    def __serialize_query_set(self, complementary_pairs_query_set):
+        out_list = []
+        for current_pair in complementary_pairs_query_set:
+            pair_dict = {}
+            pair_dict["Score"] = current_pair.score
+            pair_dict[current_pair.food_1.food_name] = current_pair.food_1_part
+            pair_dict[current_pair.food_2.food_name] = current_pair.food_2_part
+            
+            out_list.append(pair_dict)
+
+        return out_list
+        
+
+
 
 
 class GetNormalizedRequirementsAPIView(APIView):

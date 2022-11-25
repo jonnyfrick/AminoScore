@@ -19,7 +19,7 @@ class FoodCategory(models.Model):
 class Food(models.Model):
     food_category = models.ForeignKey(FoodCategory, null = True, on_delete = models.SET_NULL)
     food_name = models.CharField(max_length = 80)
-    fdc_id = models.BigIntegerField(default = 0)
+    fdc_id = models.IntegerField(default = 0)
     
     Histidine = models.FloatField(default = 0)
     Isoleucine = models.FloatField(default = 0)
@@ -76,10 +76,22 @@ class Food(models.Model):
     
 
 
+class ComplementaryPair(models.Model):
+    food_1 = models.ForeignKey(Food, related_name='food_1', null = True, on_delete = models.SET_NULL)
+    food_2 = models.ForeignKey(Food, related_name='food_2', null = True, on_delete = models.SET_NULL)
+    food_1_fdc_id = models.IntegerField(default = 0) #restoration capability
+    food_2_fdc_id = models.IntegerField(default = 0) #restoration capability
+    score = models.FloatField(default = 0)
+    food_1_part = models.FloatField(default = 0)
+    food_2_part = models.FloatField(default = 0)
+
+    def __str__(self):
+        return self.food_1.food_name + '+' + self.food_2.food_name + ': ' + str(self.score)
 
 
 
     
+
 
 
 
