@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 #from amino_json_responder import fill_models_from_fdc_data
-#from recommender import complementary_pairs_finder
+from recommender import complementary_pairs_finder
 
 #print(os.path.abspath("./../../process_fdc_data/ProcessedFoodData.json"))
 
