@@ -2,13 +2,14 @@ from amino_json_responder import models
 from recommender import mixing_ratio_optimizer
 import sys
 import time
-import threading
+#from multiprocessing import Process
+import multiprocessing
 import os
 
-MIN_NUMBER_OF__OBJECTS_AT_ONCE = 1000
+MIN_NUMBER_OF_OBJECTS_AT_ONCE = 5000
 
-complementary_pairs_model_lock = threading.Lock()
-print_lock = threading.Lock()
+complementary_pairs_model_lock = multiprocessing.Lock()
+print_lock = multiprocessing.Lock()
 
 def locked_print(*args):
     print_lock.acquire()
@@ -34,21 +35,22 @@ def find_complementary_pairs(category, restriction):
     number_of_cpus = os.cpu_count()
 
 
+
     range_indices =  calculate_split_indices(number_of_foods, number_of_cpus)
 
 
-    worker_threads = []
-    for current_thread_number in range(number_of_cpus):
-        current_thread = threading.Thread(
+    worker_processes = []
+    for current_process_number in range(number_of_cpus):
+        current_process = multiprocessing.Process(
             target = find_complementary_pairs_worker,
-            args = (range_indices[current_thread_number], range_indices[current_thread_number + 1], foods_query_set))
-        worker_threads.append(current_thread)
-        current_thread.start()
+            args = (range_indices[current_process_number], range_indices[current_process_number + 1], foods_query_set))
+        worker_processes.append(current_process)
+        current_process.start()
 
-    for current_thread in worker_threads:
-        current_thread.join()
+    for current_process in worker_processes:
+        current_process.join()
 
-    locked_print("find comp time: ", str(time.time() - over_all_time_stamp))
+    locked_print("find complementary pairs time: ", str(time.time() - over_all_time_stamp))
 
 
 
@@ -83,9 +85,9 @@ def find_complementary_pairs_worker(start_ind, stop_ind, foods_query_set):
     number_of_foods = len(foods_query_set)
     for i in range(start_ind, stop_ind):
 
-        locked_print(str(threading.get_ident()), "Calculating Scores- i: ", str(i))
+        locked_print(str(os. getpid()), "Calculating Scores- i: ", str(i))
 
-        if len(pairs_list) >= MIN_NUMBER_OF__OBJECTS_AT_ONCE:
+        if len(pairs_list) >= MIN_NUMBER_OF_OBJECTS_AT_ONCE:
             locked_model_write(pairs_list)
             pairs_list = []
 
