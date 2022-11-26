@@ -10,7 +10,7 @@ import {
 } from 'chart.js';
 
 import { Bar } from 'react-chartjs-2';
-import { Products } from './components/Products'
+import { Tabula } from './components/tabula'
 
 
 import './index.css'
@@ -135,26 +135,21 @@ export const food = [{
 }]
 
 
-const labels = ['AminoA', 'AminoB', 'AminoC', 'AminoD', 'AminoE', 'AminoF', 'AminoG', 'AminoH', 'AminoI'];
+const labels = ['AminoA', 'AminoB', 'AminoC', 'AminoD', 'AminoE', 'AminoF', 'AminoG', 'AminoH', 'AminoI'];  
 
 
 const colors = ['rgb(237,248,251)', 'rgb(179,205,227)', 'rgb(140,150,198)', 'rgb(136,86,167)', 'rgb(129,15,124)']
 
 
-
-
 const datasets = []
 
 Object.values(food).forEach((val, index) => {
-
   datasets.push({
     label: val.name,
     data: val.aminos,
     backgroundColor: colors[index],
     stack: 'Stack 0',
-
   })
-
 })
 
 export const data = {
@@ -166,7 +161,7 @@ export const data = {
 export function App() {
   return <div className='container'>
     <Bar options={options} data={data} />
-    <Products food={food}/>
+    <Tabula food={food}/>
   </div>
 }
 

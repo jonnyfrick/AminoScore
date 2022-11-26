@@ -1,5 +1,5 @@
 //import axios from "axios";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useGlobalFilter, useSortBy, useTable } from "react-table";
 import tw from "twin.macro";
 import { GlobalFilter } from "./globalFilter";
@@ -8,7 +8,6 @@ const Table = tw.table`
   table-auto
   text-base
   text-gray-700
-  
 `;
 
 const TableHead = tw.thead`
@@ -52,44 +51,10 @@ const Button = tw.button`
 `;
 
 
-export function Products({food}) {
-  // const [products, setProducts] = useState([]);
+export function Tabula({food}) {
 
-  // const fetchProducts = async () => {
-  //   const response = await axios
-  //     .get("https://fakestoreapi.com/products")
-  //     .catch((err) => console.log(err));
-
-  //   if (response) {
-  //     const products = response.data;
-
-  //     console.log("Products: ", products);
-  //     setProducts(products);
-  //   }
-  // };
-
-  
-
+ 
   const [aminoArray, setAminoArray] = useState(food);
-
-
-  const handleAddAmino = () => {
-    let arr = [...aminoArray]
-    arr.push(
-      {
-        id: 6,
-        name: "Pee wee",
-        aminos: [0.229, 0.806, 0.92, 1.88, 0.951, 0.29, 1.5, 1.06, 1.12, 0.676],
-        KCal: 50.95
-      })
-      setAminoArray(arr)
-  };
-  
-  useEffect(() => {
-      handleAddAmino();
-   }, []);
-  
-  
 
   const columns = useMemo(
     () => [
@@ -108,11 +73,19 @@ export function Products({food}) {
     ],
     []
   );
-
+  
 
   const fetchAminos = (id) => {
     return aminoArray[id].aminos
   }
+  
+  const deleteAminos = (id) => {
+    setAminoArray(current => 
+      current.filter(obj => {
+        return obj.id !== id
+      })
+    );
+  };
 
 
   const tableHooks = (hooks) => {
@@ -122,7 +95,7 @@ export function Products({food}) {
         id: "Edit",
         Header: "Edit",
         Cell: ({ row }) => (
-          <Button onClick={() => alert("Editing: " + row.values.id)}>
+          <Button onClick={() => deleteAminos(row.values.id)}>
             Mad
           </Button>
           
