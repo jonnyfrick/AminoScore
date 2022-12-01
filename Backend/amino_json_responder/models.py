@@ -79,14 +79,14 @@ class Food(models.Model):
     def get_amino_acids_dict(self):
         nutrients_dict = self.get_nutrients()
 
-        sum = nutrients_dict["AminoAcidsSum"]
+        # sum = nutrients_dict["AminoAcidsSum"]
         for current_key_to_drop in list(nutrients_dict.keys())[n_aminos:]:
             nutrients_dict.pop(current_key_to_drop, None)
 
-        normalized_array = np.array(list(nutrients_dict.values()))
-        absolute_content_array = normalized_array * sum
+        # normalized_array = np.array(list(nutrients_dict.values()))
+        # absolute_content_array = normalized_array * sum
 
-        nutrients_dict.update(zip(nutrients_dict.keys(), absolute_content_array))
+        # nutrients_dict.update(zip(nutrients_dict.keys(), absolute_content_array))
         return nutrients_dict
 
 
