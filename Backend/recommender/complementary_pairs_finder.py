@@ -6,6 +6,7 @@ import time
 import multiprocessing
 import os
 
+
 MIN_NUMBER_OF_OBJECTS_AT_ONCE = 5000
 
 complementary_pairs_model_lock = multiprocessing.Lock()
@@ -25,13 +26,13 @@ def locked_model_write(pairs_list):
     locked_print("Bulk create time:", str((toc - tic) * 1000), "for", str(pairs_list.__len__()), "objects")
 
 
-def find_complementary_pairs(category, restriction):
+def find_complementary_pairs(category, restriction, debug_limit):
 
     over_all_time_stamp = time.time()
     models.ComplementaryPair.objects.all().delete()
 
     foods_query_set = models.Food.objects.filter(food_category__category_name = category)
-    number_of_foods = len(foods_query_set)# if len(foods_query_set) < debug_limit else debug_limit
+    number_of_foods = len(foods_query_set) if len(foods_query_set) < debug_limit else debug_limit
     number_of_cpus = os.cpu_count()
 
 
@@ -43,7 +44,7 @@ def find_complementary_pairs(category, restriction):
     for current_process_number in range(number_of_cpus):
         current_process = multiprocessing.Process(
             target = find_complementary_pairs_worker,
-            args = (range_indices[current_process_number], range_indices[current_process_number + 1], foods_query_set))
+            args = (range_indices[current_process_number], range_indices[current_process_number + 1], foods_query_set, number_of_foods))
         worker_processes.append(current_process)
         current_process.start()
 
@@ -79,10 +80,10 @@ def calculate_split_indices(number_of_foods, number_of_cpus):
     return range_indices
 
 
-     
-def find_complementary_pairs_worker(start_ind, stop_ind, foods_query_set):
+
+def find_complementary_pairs_worker(start_ind, stop_ind, foods_query_set, number_of_foods):
     pairs_list = []
-    number_of_foods = len(foods_query_set)
+
     for i in range(start_ind, stop_ind):
 
         locked_print(str(os. getpid()), "Calculating Scores- i: ", str(i))
@@ -124,4 +125,4 @@ def find_complementary_pairs_worker(start_ind, stop_ind, foods_query_set):
     locked_model_write(pairs_list)
 
 
-find_complementary_pairs("Vegetables and Vegetable Products", "vegan")
+find_complementary_pairs("Vegetables and Vegetable Products", "vegan", 50)
