@@ -2,6 +2,7 @@ from amino_json_responder import models
 import os
 import json
 from builtins import print
+import numpy as np
 
 default_unit_name = "g"
 vegan_keywords = ["baked", "vegetable", "fruit", "legume", "cereal", "spice", "herb", "grains", "pasta"]
@@ -112,7 +113,7 @@ def findStringDefaultFunction(current_nutrient, match_string):
     return found, value_to_set
 
 
-model_fields_to_fdc_map = {
+amino_acids_model_fields_to_fdc_map = {
     "Histidine": "Histidine",
     "Isoleucine": "Isoleucine",
     "Leucine": "Leucine",
@@ -123,7 +124,10 @@ model_fields_to_fdc_map = {
     "Tryptophan": "Tryptophan",
     "Valine": "Valine",
     "Tyrosine": "Tyrosine",
-    "CystEine": findCystEine,
+    "CystEine": findCystEine
+}
+
+additional_nutrients_model_fields_to_fdc_map = {
     "IsTrueCysteine": findTrueCysteine,
     "TotalProtein": "Protein",
     "TotalFat": "Total lipid (fat)",
@@ -132,47 +136,96 @@ model_fields_to_fdc_map = {
 }
 
 
-def parse_nutrients(food_list, model_fields_map):
+def parse_nutrients(food_list, amino_acids_map, additional_nutrients_map):
 
     food_number = 0
     match_number = 0
-    found_fields_in_current = 0
-    found = False
+
+    found_all_searched_nutrients = False
 
     model_rows_list = []
+    found_amino_acids_dict = {}
+    found_additional_nutrients_dict = {}
+    n_found_amino_acids = 0
+    n_found_additional_nutrients = 0
 
     for current_food in food_list:
         nutrients = current_food["foodNutrients"]
-        current_row_model = models.Food()
         for current_nutrient in nutrients:
-            for current_model_field, current_db_string_or_function in model_fields_map.items():
-                value_to_set = 0
-                if type(current_db_string_or_function) is str:
-                    found, value_to_set = findStringDefaultFunction(current_nutrient, current_db_string_or_function)
-                else:
-                    found, value_to_set = current_db_string_or_function(current_nutrient)
+            n_found_amino_acids += parse_single_nutrient(current_nutrient, amino_acids_map, found_amino_acids_dict)
+            n_found_additional_nutrients += parse_single_nutrient(current_nutrient, additional_nutrients_map, found_additional_nutrients_dict)
+            found_all_searched_nutrients = n_found_amino_acids + n_found_additional_nutrients == len(amino_acids_map) + len(additional_nutrients_map)
 
-                if (found):
-                    if(current_row_model.__getattribute__(current_model_field) == 0):
-                        found_fields_in_current += 1
-                        current_row_model.__setattr__(current_model_field, value_to_set)
+        if found_all_searched_nutrients:
+            
+            add_model_to_row_list(model_rows_list, current_food, found_amino_acids_dict, found_additional_nutrients_dict)
 
-        if found_fields_in_current == len(model_fields_map):
-            print(str(match_number), str(food_number),
-                  current_food["description"])
-            current_row_model.food_name = current_food["description"]
-            current_row_model.fdc_id = current_food["fdcId"]
-            category_name = current_food["foodCategory"]["description"]
-            category = add_to_category(category_name)
-            current_row_model.food_category = category
-            model_rows_list.append(current_row_model)
+            print(str(match_number), str(food_number), current_food["description"])
             match_number += 1
-
-        found_fields_in_current = 0
+            
+        n_found_amino_acids = 0
+        n_found_additional_nutrients = 0
+        found_amino_acids_dict = {}
+        found_additional_nutrients_dict = {}
         food_number += 1
-        found = False
+        found_all_searched_nutrients = False
     
     models.Food.objects.bulk_create(model_rows_list)
+
+
+def add_model_to_row_list(model_rows_list, current_food, found_amino_acids_dict, found_additional_nutrients_dict):
+
+    current_row_model = models.Food()
+    append_normalized_amounts(found_amino_acids_dict)
+    current_row_model.set_dict_to_fields(found_amino_acids_dict)
+    current_row_model.set_dict_to_fields(found_additional_nutrients_dict)
+
+    current_row_model.food_name = current_food["description"]
+    current_row_model.fdc_id = current_food["fdcId"]
+    category_name = current_food["foodCategory"]["description"]
+    category = add_to_category(category_name)
+    current_row_model.food_category = category
+    model_rows_list.append(current_row_model)
+
+
+def parse_single_nutrient(single_nutrient, model_fields_map, found_nutrients_dict):
+
+
+    found_fields_in_current = 0
+
+    for current_model_field, current_db_string_or_function in model_fields_map.items():
+        value_to_set = 0
+        if type(current_db_string_or_function) is str:
+            found, value_to_set = findStringDefaultFunction(single_nutrient, current_db_string_or_function)
+        else:
+            found, value_to_set = current_db_string_or_function(single_nutrient) 
+        if (found):
+            if(found_nutrients_dict.get(current_model_field) == None):
+                found_fields_in_current += 1
+                found_nutrients_dict[current_model_field] = value_to_set
+
+    return found_fields_in_current
+             
+
+
+
+def append_normalized_amounts(nutrients_dict):
+    
+    #calcuöate relative values
+    nutrients_array = np.array(list(nutrients_dict.values()))
+    values_sum = nutrients_array.sum()
+    normalized_array = nutrients_array / values_sum
+
+    relative_keys_list = []
+
+    for current_key in nutrients_dict.keys():
+        relative_keys_list.append("Relative" + current_key)
+
+    nutrients_dict.update(zip(relative_keys_list, normalized_array))
+    nutrients_dict["AminoAcidsSum"] = values_sum
+
+    return nutrients_dict
+
 
 
 def fill_models_with_fdc_data(root_key, rel_path):
@@ -180,13 +233,13 @@ def fill_models_with_fdc_data(root_key, rel_path):
     with open(os.path.join(script_dir, rel_path)) as food_data_file:
         global_food_data = json.load(food_data_file)
         food_list = global_food_data[root_key]
-    parse_nutrients(food_list, model_fields_to_fdc_map)
+    parse_nutrients(food_list, amino_acids_model_fields_to_fdc_map, additional_nutrients_model_fields_to_fdc_map)
     
 
-def clear_all_models():
+def clear_models():
     models.Food.objects.all().delete()
     models.FoodCategory.objects.all().delete()
 
-# clear_all_models()
-# fill_models_with_fdc_data("FoundationFoods", "../process_fdc_data/DataSets/FoodData_Central_foundation_food_json_2022-10-28.json")
+clear_models()
+fill_models_with_fdc_data("FoundationFoods", "../process_fdc_data/DataSets/FoodData_Central_foundation_food_json_2022-10-28.json")
 # fill_models_with_fdc_data("SRLegacyFoods", "../process_fdc_data/DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json")
