@@ -25,13 +25,13 @@ def locked_model_write(pairs_list):
     locked_print("Bulk create time:", str((toc - tic) * 1000), "for", str(pairs_list.__len__()), "objects")
 
 
-def find_complementary_pairs(category, restriction, debug_limit):
+def find_complementary_pairs(category, restriction, debug_limit = 100000000):
 
     over_all_time_stamp = time.time()
     models.ComplementaryPair.objects.all().delete()
 
     foods_query_set = models.Food.objects.filter(food_category__category_name = category)
-    number_of_foods = len(foods_query_set) if len(foods_query_set) < debug_limit else debug_limit
+    number_of_foods = min(len(foods_query_set), debug_limit)
     number_of_cpus = os.cpu_count()
 
     range_indices =  calculate_split_indices(number_of_foods, number_of_cpus)
@@ -121,4 +121,4 @@ def find_complementary_pairs_worker(start_ind, stop_ind, foods_query_set, number
     locked_model_write(pairs_list)
 
 
-find_complementary_pairs("Vegetables and Vegetable Products", "vegan", 50)
+find_complementary_pairs("Vegetables and Vegetable Products", "vegan")

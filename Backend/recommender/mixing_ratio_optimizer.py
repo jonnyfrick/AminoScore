@@ -53,8 +53,30 @@ def optimize_mixing_ratio_for_adult_who_recommendation(food_nutrients_dicts):
 
     return optimize_mixing_ratio(relative_nutrients_matrix)
 
-def fast_two_ingredients_minimize(criterion, x0, relative_nutrients_matrix, bounds):
+# def fast_two_ingredients_minimize(criterion, x0, relative_nutrients_matrix, bounds):
 
+#     initial_inc =  0.01
+#     log_change = 2
+
+#     x = x0.copy()
+
+#     initial_criterion_value = criterion(x0, relative_nutrients_matrix)
+    
+#     x[0] += initial_inc
+#     current_criterion_value = criterion(x0, relative_nutrients_matrix)
+
+#     if current_criterion_value < initial_criterion_value:
+#         log_factor = log_change
+#     else:
+#         log_factor = 1 / log_change
+
+#     while current_criterion_value < initial_criterion_value:
+#         x[0] *= log_factor
+#         current_criterion_value = criterion(x0, relative_nutrients_matrix)
+
+
+
+    
     return
 
 def optimize_mixing_ratio(relative_nutrients_matrix):
@@ -63,7 +85,7 @@ def optimize_mixing_ratio(relative_nutrients_matrix):
     x0 = set_initial_values(relative_nutrients_matrix)
     mix_is_better, first_better_than_mixed_ind = is_mixed_better_than_all_single_foods(x0, relative_nutrients_matrix)
     
-    if False: #mix_is_better:
+    if mix_is_better:
         #optimize
         lower_bound = x0.min() / MAX_OPTIMIZATION_FACTOR
         upper_bound = x0.max() * MAX_OPTIMIZATION_FACTOR
