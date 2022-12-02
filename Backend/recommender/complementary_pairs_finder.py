@@ -2,7 +2,6 @@ from amino_json_responder import models
 from recommender import mixing_ratio_optimizer
 import sys
 import time
-#from multiprocessing import Process
 import multiprocessing
 import os
 
@@ -35,13 +34,10 @@ def find_complementary_pairs(category, restriction, debug_limit):
     number_of_foods = len(foods_query_set) if len(foods_query_set) < debug_limit else debug_limit
     number_of_cpus = os.cpu_count()
 
-
-
     range_indices =  calculate_split_indices(number_of_foods, number_of_cpus)
 
-
     worker_processes = []
-    for current_process_number in range(number_of_cpus):
+    for current_process_number in range(len(range_indices) - 1):
         current_process = multiprocessing.Process(
             target = find_complementary_pairs_worker,
             args = (range_indices[current_process_number], range_indices[current_process_number + 1], foods_query_set, number_of_foods))

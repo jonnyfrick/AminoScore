@@ -169,8 +169,9 @@ def parse_nutrients(food_list, amino_acids_map, additional_nutrients_map):
         found_additional_nutrients_dict = {}
         food_number += 1
         found_all_searched_nutrients = False
-    
+
     models.Food.objects.bulk_create(model_rows_list)
+
 
 
 def add_model_to_row_list(model_rows_list, current_food, found_amino_acids_dict, found_additional_nutrients_dict):
@@ -211,17 +212,19 @@ def parse_single_nutrient(single_nutrient, model_fields_map, found_nutrients_dic
 
 def append_normalized_amounts(nutrients_dict):
     
-    #calcuöate relative values
+    #calculate relative values
     nutrients_array = np.array(list(nutrients_dict.values()))
     values_sum = nutrients_array.sum()
-    normalized_array = nutrients_array / values_sum
+
+    if values_sum != 0:
+        nutrients_array /= values_sum
 
     relative_keys_list = []
 
     for current_key in nutrients_dict.keys():
         relative_keys_list.append("Relative" + current_key)
 
-    nutrients_dict.update(zip(relative_keys_list, normalized_array))
+    nutrients_dict.update(zip(relative_keys_list, nutrients_array))
     nutrients_dict["AminoAcidsSum"] = values_sum
 
     return nutrients_dict
@@ -242,4 +245,4 @@ def clear_models():
 
 clear_models()
 fill_models_with_fdc_data("FoundationFoods", "../process_fdc_data/DataSets/FoodData_Central_foundation_food_json_2022-10-28.json")
-# fill_models_with_fdc_data("SRLegacyFoods", "../process_fdc_data/DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json")
+fill_models_with_fdc_data("SRLegacyFoods", "../process_fdc_data/DataSets/FoodData_Central_sr_legacy_food_json_2021-10-28.json")
