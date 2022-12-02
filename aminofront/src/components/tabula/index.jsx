@@ -51,10 +51,10 @@ const Button = tw.button`
 `;
 
 
-export function Tabula({food}) {
+export function Tabula({aminoArray, setAminoArray}) {
 
  
-  const [aminoArray, setAminoArray] = useState(food);
+ 
 
   const columns = useMemo(
     () => [
@@ -96,7 +96,7 @@ export function Tabula({food}) {
         Header: "Edit",
         Cell: ({ row }) => (
           <Button onClick={() => deleteAminos(row.values.id)}>
-            Mad
+            Del
           </Button>
           
         ),
