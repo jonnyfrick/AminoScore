@@ -1,13 +1,16 @@
 
 #from recommender import NutrientsPattern
-import numpy as np
+import numpy as np #jax.numpy for CUDA gpu support- refactoring to immutable jax arrays necessary
 from scipy.optimize import minimize, Bounds
 from recommender import knowledge_base
 import random
+import time
+
 
 MAX_OPTIMIZATION_FACTOR = 10
 #PROPORTION_SIGNIFICANCE_LEVEL = 0.01
 
+#@njit
 def set_initial_values(relative_nutrients_matrix):
     x0 = np.ones(len(relative_nutrients_matrix))
     
@@ -50,33 +53,62 @@ def optimize_mixing_ratio_for_adult_who_recommendation(food_nutrients_dicts):
 
     return optimize_mixing_ratio(relative_nutrients_matrix)
 
+# def fast_two_ingredients_minimize(criterion, x0, relative_nutrients_matrix, bounds):
 
+#     initial_inc =  0.01
+#     log_change = 2
+
+#     x = x0.copy()
+
+#     initial_criterion_value = criterion(x0, relative_nutrients_matrix)
+    
+#     x[0] += initial_inc
+#     current_criterion_value = criterion(x0, relative_nutrients_matrix)
+
+#     if current_criterion_value < initial_criterion_value:
+#         log_factor = log_change
+#     else:
+#         log_factor = 1 / log_change
+
+#     while current_criterion_value < initial_criterion_value:
+#         x[0] *= log_factor
+#         current_criterion_value = criterion(x0, relative_nutrients_matrix)
+
+
+
+    
+    return
 
 def optimize_mixing_ratio(relative_nutrients_matrix):
 
 
     x0 = set_initial_values(relative_nutrients_matrix)
-    #print("x0: ", str(x0))
+    mix_is_better, first_better_than_mixed_ind = is_mixed_better_than_all_single_foods(x0, relative_nutrients_matrix)
+    
+    if mix_is_better:
+        #optimize
+        lower_bound = x0.min() / MAX_OPTIMIZATION_FACTOR
+        upper_bound = x0.max() * MAX_OPTIMIZATION_FACTOR
+        positive_bounds = Bounds(lower_bound, upper_bound)
 
-    lower_bound = x0.min() / MAX_OPTIMIZATION_FACTOR
-    upper_bound = x0.max() * MAX_OPTIMIZATION_FACTOR
-    positive_bounds = Bounds(lower_bound, upper_bound)
+        optimizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
 
-    optimizer_output = minimize(criterion, x0, relative_nutrients_matrix, bounds = positive_bounds)
-    mixing_ratio = optimizer_output.x
+        mixing_ratio = optimizer_output.x
+        score = 1 / optimizer_output.fun
 
-    zeroize_non_significant_factors(mixing_ratio, x0, lower_bound)
+        zeroize_non_significant_factors(mixing_ratio, x0, lower_bound)
+
+    else:
+        mixing_ratio = np.zeros_like(x0)
+        mixing_ratio[first_better_than_mixed_ind] = 1
+        mixing_ratio = x0
+        score = 1 / criterion(x0, relative_nutrients_matrix)
 
     normalized_mixing_ratio = mixing_ratio / mixing_ratio.sum()
-
-    #print("Nit: " + str(opmizer_output.nit))
-    #print("Mixed profile: ", str(calculate_mixed_profile(normalized_mixing_ratio, relative_nutrients_matrix)))
-    #print(optimizer_output)
-
     members_keys_list = knowledge_base.get_who_pattern_keys()
-    score = 1 / optimizer_output.fun
 
     return normalized_mixing_ratio, relative_nutrients_matrix, members_keys_list, score
+
 
 def zeroize_non_significant_factors(mixing_ratio_out, x0, lower_bound):
     for i in range(len(x0)):
@@ -86,12 +118,11 @@ def zeroize_non_significant_factors(mixing_ratio_out, x0, lower_bound):
 
 def calculate_mixed_profile(x, nutrients_patterns):
 
-    result_pattern = np.zeros_like(nutrients_patterns[0])
-
-    for i in range(len(x)):
-        result_pattern += (x[i] * nutrients_patterns[i])
+    nutrients_patterns_t = nutrients_patterns.transpose()
+    result_pattern = np.matmul(nutrients_patterns_t, x)
 
     return result_pattern
+
 
 def criterion(x, *args):
 
@@ -109,18 +140,22 @@ def calculate_score_reciprocal(result_pattern):
 
 def is_mixed_better_than_all_single_foods(mixing_ratio, relative_nutrients_matrix):
 
-    ret = True
+    is_better = True
 
     mixed_profile = calculate_mixed_profile(mixing_ratio, relative_nutrients_matrix)
     mixed_score_reciprocal = calculate_score_reciprocal(mixed_profile)
 
+    first_better_than_mixed_ind = 0
+
     for current_relative_pattern in relative_nutrients_matrix:
         current_score_reciprocal = calculate_score_reciprocal(current_relative_pattern)
         if current_score_reciprocal <= mixed_score_reciprocal:
-            ret = False
+            is_better = False
             break
+        
+        first_better_than_mixed_ind += 1
 
-    return ret
+    return is_better, first_better_than_mixed_ind - 1
 
 
 def __average_deviation(arr):
@@ -128,9 +163,11 @@ def __average_deviation(arr):
     #print("Avg dev: ", str(ret))
     return ret
 
+
 def __mean_square_sum(arr):
     out_arr = __average_deviation(arr)
     return sum(out_arr**2)
+
 
 def __negative_mean_square_sum(arr):
     out_arr = __average_deviation(arr)

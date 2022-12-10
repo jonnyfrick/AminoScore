@@ -26,6 +26,27 @@ class ContainingFoodsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Food.objects.filter(food_category__vegan = True)
     serializer_class = serializers.FoodSerializer
 
+class GetFoodsViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+
+        restriction = json.loads(request.query_params.get('Restriction'))
+
+        found_foods = []
+
+        if restriction == "none":
+            foods_query_set = models.Food.objects.all()
+        if restriction == "vegetarian":
+            foods_query_set = models.Food.objects.filter(food_category__vegetarian = True)
+        if restriction == "vegan":
+            foods_query_set = models.Food.objects.filter(food_category__vegan = True)
+
+        for current_food in foods_query_set:
+
+            found_foods.append(current_food.food_name)
+
+        return Response(found_foods)
+
 class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
 
 
@@ -46,53 +67,26 @@ class GetOptimizedMixingRatioViewSet(viewsets.ViewSet):
 
         normalized_mixing_ratio, relative_nutrients_matrix, output_keys_list, score = mixing_ratio_optimizer.optimize_mixing_ratio_for_person_who_recommendation(list(foods_nutrients.values()), age, weight)
 
-        #response = self.__generate_pure_proportions_output(foods_nutrients, normalized_mixing_ratio)
-        response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, output_keys_list, normalized_mixing_ratio, relative_nutrients_matrix, score)
-
+        response = self.__generate_pure_proportions_output(foods_nutrients, normalized_mixing_ratio, score)
+        
         return Response(response)
 
-    def __generate_pure_proportions_output(self, foods_nutrients, normalized_mixing_ratio):
+    def __generate_pure_proportions_output(self, foods_nutrients, normalized_mixing_ratio, score):
 
+        output_dict = {}
         mixing_ratios_dict = {}
+
         foods_list = list(foods_nutrients.keys())
 
         for i in range(len(foods_list)):
             mixing_ratios_dict[foods_list[i]] = normalized_mixing_ratio[i]
 
-        return mixing_ratios_dict
-            
-
-    def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix, score):
-        output_dict = {}
         output_dict["Score"] = score
-        foods_nutrients_keys_list = list(foods_nutrients.keys())
-        foods_nutrients_values_list = list(foods_nutrients.values())
-
-        for i in range(len(foods_nutrients_keys_list)):
-            proportion_dict = {}
-            proportion_dict["Proportion"] = normalized_mixing_ratio[i]
-            nutrients_coverage = list(relative_nutrients_matrix[i])
-            coverage_dict = {foods_nutrients_list[j]: nutrients_coverage[j] for j in range(len(nutrients_coverage))}          
-            proportion_dict["100_g_coverage"] = coverage_dict
-            combined_parts_dict = {}
-            combined_parts_dict["methionine_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Methionine"], foods_nutrients_values_list[i]["CystEine"])
-            combined_parts_dict["phenylalaline_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Phenylalanine"], foods_nutrients_values_list[i]["Tyrosine"])
-            proportion_dict["Combined Parts"] = combined_parts_dict
-            output_dict[foods_nutrients_keys_list[i]] = proportion_dict
+        output_dict["Proportions"] = mixing_ratios_dict
 
         return output_dict
+            
 
-    def __calculate_relative_part(self, relative_part_of_this, second_in_sum):
-
-        denominator = relative_part_of_this + second_in_sum
-
-        if denominator == 0:
-            relative_part = 0.0
-        else:
-            relative_part = relative_part_of_this / denominator
-        return  relative_part
-
-    
 class GetRecommendationsViewSet(viewsets.ViewSet):
 
     def list(self, request, format = None):
@@ -144,37 +138,93 @@ class GetHighScoresViewSet(viewsets.ViewSet):
         return out_list
         
 
+class GetWhoRequirementsViewSet(viewsets.ViewSet):
+
+    def list(self, request, format = None):
+
+        age = json.loads(request.query_params.get('Age'))
+        weight = json.loads(request.query_params.get('Weight'))
+
+        #response = self.__generate_proportions_relative_nutrients_output(foods_nutrients, output_keys_list, normalized_mixing_ratio, relative_nutrients_matrix, score)
+
+        response = knowledge_base.get_who_requirements_dict(age, weight)
+
+        return Response(response)
 
 
+    # def __generate_proportions_relative_nutrients_output(self, foods_nutrients, foods_nutrients_list, normalized_mixing_ratio, relative_nutrients_matrix, score):
+    #     output_dict = {}
+    #     output_dict["Score"] = score
+    #     foods_nutrients_keys_list = list(foods_nutrients.keys())
+    #     foods_nutrients_values_list = list(foods_nutrients.values())
 
-class GetNormalizedRequirementsAPIView(APIView):
+    #     for i in range(len(foods_nutrients_keys_list)):
+    #         proportion_dict = {}
+    #         proportion_dict["Proportion"] = normalized_mixing_ratio[i]
+    #         nutrients_coverage = list(relative_nutrients_matrix[i])
+    #         coverage_dict = {foods_nutrients_list[j]: nutrients_coverage[j] for j in range(len(nutrients_coverage))}          
+    #         proportion_dict["100_g_coverage"] = coverage_dict
+    #         combined_parts_dict = {}
+    #         combined_parts_dict["methionine_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Methionine"], foods_nutrients_values_list[i]["CystEine"])
+    #         combined_parts_dict["phenylalaline_part"] = self.__calculate_relative_part(foods_nutrients_values_list[i]["Phenylalanine"], foods_nutrients_values_list[i]["Tyrosine"])
+    #         proportion_dict["Combined Parts"] = combined_parts_dict
+    #         output_dict[foods_nutrients_keys_list[i]] = proportion_dict
 
-    def get(self, request, format = None):
+    #     return output_dict
 
-        return Response()
+    # def __calculate_relative_part(self, relative_part_of_this, second_in_sum):
+
+    #     denominator = relative_part_of_this + second_in_sum
+
+    #     if denominator == 0:
+    #         relative_part = 0.0
+    #     else:
+    #         relative_part = relative_part_of_this / denominator
+    #     return  relative_part
+
+
+class GetWho100gCoverageViewSet(viewsets.ViewSet):
+
+    def list(self, request, format = None):
+        foods = json.loads(request.query_params.get('Foods'))
+        age = json.loads(request.query_params.get('Age'))
+        weight = json.loads(request.query_params.get('Weight'))
+
+        response = "key not found"
+
+        foods_nutrients = {}
+
+        for current_food in foods:
+            requested_food_query_set = models.Food.objects.filter(food_name__contains = current_food).order_by(Length('food_name').asc())[:1]
+            if len(requested_food_query_set) != 0:
+                single_record = requested_food_query_set[0]
+                all_nutrients_dict = single_record.get_nutrients()
+                amino_acids_coverage_dict = knowledge_base.get_100_g_coverage_per_cent_dict(all_nutrients_dict, age, weight)
+                additional_nutrients_dict = self.__extract_additional_nutrients(all_nutrients_dict, ("TotalProtein", "TotalFat", "TotalCarbohydrates"))
+                output_nutrients_dict = {}
+                output_nutrients_dict["amino_acids_100_g_coverage_per_cent"] = amino_acids_coverage_dict
+                output_nutrients_dict["additional_nutrients_absolute_100_g_content_g"] = additional_nutrients_dict
+                foods_nutrients[single_record.food_name] = output_nutrients_dict
+
+        
+
+        if len(foods_nutrients) > 0:
+            response = foods_nutrients
+
+        return Response(response)
+
+    def __extract_additional_nutrients(self, nutrients_dict, subset_keys_list):
+
+        sub_dict = dict((current_key, nutrients_dict[current_key]) for current_key in subset_keys_list)
+
+        return sub_dict
+
+
 
 @api_view()
 def get_nutrients_list(request):
 
     return Response(models.Food.get_nutrients_keys())
-
-@api_view()
-def get_foods(request, restriction):
-
-    found_foods = []
-
-    if restriction == "none":
-        foods_query_set = models.Food.objects.all()
-    if restriction == "vegetarian":
-        foods_query_set = models.Food.objects.filter(food_category__vegetarian = True)
-    if restriction == "vegan":
-        foods_query_set = models.Food.objects.filter(food_category__vegan = True)
-
-    for current_food in foods_query_set:
-
-        found_foods.append(current_food.food_name)
-
-    return Response(found_foods)
 
 
 @api_view()

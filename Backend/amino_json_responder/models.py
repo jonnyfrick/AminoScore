@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms.models import model_to_dict
+import numpy as np
 
 # Create your models here.
 
@@ -40,8 +41,28 @@ class Food(models.Model):
 
     TotalEnergy = models.FloatField(default = 0)
 
+    RelativeHistidine = models.FloatField(default = 0)
+    RelativeIsoleucine = models.FloatField(default = 0)
+    RelativeLeucine = models.FloatField(default = 0)
+    RelativeLysine = models.FloatField(default = 0)
+    RelativeMethionine = models.FloatField(default = 0)
+    RelativePhenylalanine = models.FloatField(default = 0)
+    RelativeThreonine = models.FloatField(default = 0)
+    RelativeTryptophan = models.FloatField(default = 0)
+    RelativeValine = models.FloatField(default = 0)
+    RelativeTyrosine = models.FloatField(default = 0)
+    RelativeCystEine = models.FloatField(default = 0)
+    AminoAcidsSum = models.FloatField(default = 0)
+
+
     def __str__(self):
         return self.food_name
+
+    def set_dict_to_fields(self, input_dict):
+
+        for current_model_field, value_to_set in input_dict.items():
+            self.__setattr__(current_model_field, value_to_set) 
+
 
     @staticmethod
     def get_nutrients_keys():
@@ -57,8 +78,15 @@ class Food(models.Model):
 
     def get_amino_acids_dict(self):
         nutrients_dict = self.get_nutrients()
+
+        # sum = nutrients_dict["AminoAcidsSum"]
         for current_key_to_drop in list(nutrients_dict.keys())[n_aminos:]:
             nutrients_dict.pop(current_key_to_drop, None)
+
+        # normalized_array = np.array(list(nutrients_dict.values()))
+        # absolute_content_array = normalized_array * sum
+
+        # nutrients_dict.update(zip(nutrients_dict.keys(), absolute_content_array))
         return nutrients_dict
 
 

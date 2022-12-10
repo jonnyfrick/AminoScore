@@ -162,8 +162,8 @@ maintanance_factor = 0.66
 
 def calculate_requirements(age, weight_kg):
     tissue_factor = np.interp(age, tissue_factors['age'], tissue_factors['factor'])
-    requirements_per_kg_mg = tissue_requirements_pattern * tissue_factor + maintainance_requirements_pattern * maintanance_factor
-    return requirements_per_kg_mg * weight_kg
+    requirements_per_kg_g = tissue_requirements_pattern * tissue_factor + maintainance_requirements_pattern * maintanance_factor
+    return requirements_per_kg_g * weight_kg
 
 def calculate_adult_requirements_per_kg_mg():
     return maintainance_requirements_pattern * maintanance_factor
@@ -184,21 +184,30 @@ def calculate_realtive_balance(intake_pattern):
 
     return mean
 
+
+def calculate_single_who_pattern(single_nutrients_dict):
+
+    who_pattern = WhoPattern(
+        histidine = single_nutrients_dict["Histidine"],
+        isoleucine = single_nutrients_dict["Isoleucine"],
+        leucine = single_nutrients_dict["Leucine"],
+        lysine = single_nutrients_dict["Lysine"],
+        methionine_plus_cysteine = single_nutrients_dict["Methionine"] + single_nutrients_dict["CystEine"] ,
+        phenylalanine_plus_tyrosine = single_nutrients_dict["Phenylalanine"] + single_nutrients_dict["Tyrosine"],
+        threonine = single_nutrients_dict["Threonine"],
+        tryptophan = single_nutrients_dict["Tryptophan"],
+        valine = single_nutrients_dict["Valine"]
+    )
+
+    return who_pattern
+
+
+
 def calculate_who_patterns(food_amino_acids_dicts):
 
     who_patterns_lists = []
     for current_food_amino_acids_dict in food_amino_acids_dicts:
-        current_pattern = WhoPattern(
-            histidine = current_food_amino_acids_dict["Histidine"],
-            isoleucine = current_food_amino_acids_dict["Isoleucine"],
-            leucine = current_food_amino_acids_dict["Leucine"],
-            lysine = current_food_amino_acids_dict["Lysine"],
-            methionine_plus_cysteine = current_food_amino_acids_dict["Methionine"] + current_food_amino_acids_dict["CystEine"] ,
-            phenylalanine_plus_tyrosine = current_food_amino_acids_dict["Phenylalanine"] + current_food_amino_acids_dict["Tyrosine"],
-            threonine = current_food_amino_acids_dict["Threonine"],
-            tryptophan = current_food_amino_acids_dict["Tryptophan"],
-            valine = current_food_amino_acids_dict["Valine"]
-        )
+        current_pattern = calculate_single_who_pattern(current_food_amino_acids_dict)
         who_patterns_lists.append(current_pattern.to_list())
 
     return who_patterns_lists
@@ -206,6 +215,38 @@ def calculate_who_patterns(food_amino_acids_dicts):
 
 def get_who_pattern_keys():
     return WhoPattern().get_fields_keys()
+
+
+
+def get_who_requirements_dict(age, weight_kg):
+
+    output_dict = {}
+
+    requirements_array = calculate_requirements(age, weight_kg)
+    who_keys = get_who_pattern_keys()
+
+    output_dict.update(zip(who_keys, requirements_array))
+
+    return output_dict
+
+
+
+def get_100_g_coverage_per_cent_dict(food_amino_acids_dict, age, weight_kg):
+
+    output_dict = {}
+
+    food_who_pattern = calculate_single_who_pattern(food_amino_acids_dict) * 100
+
+    food_100_g_coverage_array = calculate_normalized_intake(food_who_pattern.to_np_array(), age, weight_kg)
+
+    who_keys = get_who_pattern_keys()
+
+    output_dict.update(zip(who_keys, food_100_g_coverage_array))
+
+    return output_dict
+
+
+
 
 # print(tissue_requirements_pattern / maintainance_requirements_pattern)
 
