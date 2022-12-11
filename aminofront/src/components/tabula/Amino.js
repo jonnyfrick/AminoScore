@@ -8,9 +8,11 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import axios from 'axios';
 
 import { Bar } from 'react-chartjs-2';
-import { Tabula } from '.'
+import { Tabula } from '.';
+import { Fetch } from './Fetch';
 
 
 import './index.css'
@@ -24,6 +26,19 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+
+async function getFoodsStuffNow() {
+  try {
+    let response = await fetch('http://localhost:8000/get_foods/?Restriction="vegan"');
+    let responseJson = await response.json();
+    return responseJson;
+   } catch(error) {
+    console.error(error);
+  }
+}
+console.log(getFoodsStuffNow())
+
 
 export function Amino() {
   const food = [{
