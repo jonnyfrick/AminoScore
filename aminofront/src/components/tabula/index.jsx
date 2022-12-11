@@ -92,11 +92,21 @@ export function Tabula({aminoArray, setAminoArray}) {
     hooks.visibleColumns.push((columns) => [
       ...columns,
       {
-        id: "Edit",
-        Header: "Edit",
+        id: "Add",
+        Header: "Add",
         Cell: ({ row }) => (
           <Button onClick={() => deleteAminos(row.values.id)}>
             Del
+          </Button>
+          
+        ),
+      },
+      {
+        id: "Remove",
+        Header: "Remove",
+        Cell: ({ row }) => (
+          <Button>
+            {row.id}
           </Button>
           
         ),
