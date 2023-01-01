@@ -12,7 +12,7 @@ import axios from 'axios';
 
 import { Bar } from 'react-chartjs-2';
 import { Tabula } from '.';
-import { Fetch } from './Fetch';
+
 
 
 import './index.css'
@@ -28,56 +28,17 @@ ChartJS.register(
 );
 
 
-async function getFoodsStuffNow() {
-  try {
-    let response = await fetch('http://localhost:8000/get_foods/?Restriction="vegan"');
-    let responseJson = await response.json();
-    return responseJson;
-   } catch(error) {
-    console.error(error);
-  }
-}
-console.log(getFoodsStuffNow())
+
+
+
 
 
 export function Amino() {
-  const food = [{
-    id: 1,
-    name: "Peanutz butter, creamy",
-    aminos: [0.229, 0.806, 0.92, 1.88, 0.951, 0.29, 1.5, 1.06, 1.12, 0.676],
-    KCal: 50.95
-  },
-  {
-    id: 2,
-    name: "Soy milk, unsweetened, plain, shelf stable",
-    aminos: [0.046, 0.128, 0.145, 0.249, 0.221, 0.046, 0.175, 0.124, 0.142, 0.098],
-    KCal: 209.95
-  },
-  {
-    id: 3,
-    name: "Flour, soy, defatted",
-    aminos: [2.31, 4.11, 3.06, 2.31, 1.27, 0.616, 1.97, 0.622, 2.86, 1.74],
-    KCal: 259.95
-  },
-  {
-    id: 4,
-    name: "Flour, soy, full-fat",
-    aminos: [1.74, 3.06, 2.14, 1.74, 0.95, 0.45, 1.48, 0.485, 2.15, 1.4],
-    KCal: 259.95
-  },
-  {
-    id: 5,
-    name: "Soy milk, unsweetened, plain, refrigerated",
-    aminos: [0.034, 0.1, 0.1, 0.2, 0.2, 0.033, 0.157, 0.1, 0.101, 0.1],
-    KCal: 259.95
-  }]
-
+  console.log('fresh start')
   const labels = ['AminoA', 'AminoB', 'AminoC', 'AminoD', 'AminoE', 'AminoF', 'AminoG', 'AminoH', 'AminoI'];
-  const colors = ['rgb(237,248,251)', 'rgb(179,205,227)', 'rgb(140,150,198)', 'rgb(136,86,167)', 'rgb(129,15,124)']
-
-
+  //const colors = ['rgb(237,248,251)', 'rgb(179,205,227)', 'rgb(140,150,198)', 'rgb(136,86,167)', 'rgb(129,15,124)', 'rgb(129,15,124)']
+  const colors = ['rgb(247,252,253)','rgb(224,236,244)','rgb(191,211,230)','rgb(158,188,218)','rgb(140,150,198)','rgb(140,107,177)','rgb(136,65,157)','rgb(129,15,124)','rgb(77,0,75)', 'rgb(10,10,10)']
   const datasets = []
-
 
   const options = {
     responsive: true,
@@ -91,7 +52,6 @@ export function Amino() {
           size: 30
         },
       },
-
       legend: {
         position: 'chartArea',
         align: 'start',
@@ -102,8 +62,6 @@ export function Amino() {
           }
         },
       },
-
-
       scales: {
         x: {
           stacked: true,
@@ -114,35 +72,27 @@ export function Amino() {
       }
     },
   };
+  const initialFood = [{
+    id: 999,
+    name: "pppp",
+    aminos: [0.229, 0.806, 0.92, 1.88, 0.951, 0.29, 1.5, 1.06, 1.12, 0.676],
+    KCal: 1,
+    inchart: "false"
+  },
+  ]
 
-  const [currentFood, setCurrentFood] = useState(food);
 
-  useEffect(() => {
-    const datTrial = function getData() {
-      const datasets = []
-      Object.values(currentFood).forEach((val, index) => {
-        datasets.push({
-          label: val.name,
-          data: val.aminos,
-          backgroundColor: colors[index],
-          stack: 'Stack 0',
-        })
-      });
-      return {
-        labels,
-        datasets,
-      };
-    }
-    setCurrentData(datTrial)
-  }, [currentFood]);
-  
-
-  const datTrial = function getData() {
+  const preparedData = function getData() {
     const datasets = []
-    Object.values(currentFood).forEach((val, index) => {
+    Object.values(initialFood).forEach((val, index) => {
       datasets.push({
         label: val.name,
+        name: val.name,
+        id: val.id,
         data: val.aminos,
+        aminos: val.aminos,
+        Kcal: 1,
+        inchart: 'false',
         backgroundColor: colors[index],
         stack: 'Stack 0',
       })
@@ -152,13 +102,65 @@ export function Amino() {
       datasets,
     };
   }
-  const [currentData, setCurrentData] = useState(datTrial);
+  
 
-  //const [currentData, setCurrentData] = useState(datTrial)
+  const [apiData, setApiData] = useState([preparedData]);
+  useEffect(() => {
+    const arr = []
+    const getDatas = async () => {
+      let response = await fetch('http://localhost:8000/get_via_serializer/');
+      let responseJson = await response.json();
+      const top10 = responseJson.slice(0, 10);
+      top10.forEach((element, i) => {
+        arr.push({
+          id: i,
+          name: element.food_name,
+          aminos: [element.Histidine, element.Isoleucine, element.Leucine, element.Lysine, element.Methionine, element.Phenylalanine, element.Threonine, element.Tryptophan, element.Tryptophan, element.Valine],
+          KCal: 50,
+          inchart: "false"
+        })
+      });
+      const datasets = []
+      const meshStuff = function mixIt() {
+        const datasets = []
+        Object.values(arr).forEach((val, index) => {
+
+          datasets.push({
+            label: val.name,
+            name: val.name,
+            id: val.id,
+            data: val.aminos,
+            aminos: val.aminos,
+            Kcal: 1,
+            inchart: 'false',
+            backgroundColor: colors[index],
+            stack: 'Stack 0',
+          })
+
+        });
+        return {
+          labels,
+          datasets,
+        };
+      }
+      setApiData(meshStuff)
+    }
+    getDatas()
+
+  }, []);
+
+  console.log('do we have datas?')
+
+
+  if (apiData.length < 2){
+    setApiData(preparedData())
+  }
+    
+
 
 
   return <div className='container'>
-    <Bar options={options} data={currentData} />
-    <Tabula aminoArray ={currentFood} setAminoArray={setCurrentFood} />
+    <Bar options={options} data={apiData} />
+    <Tabula aminoArray={apiData.datasets} setAminoArray={setApiData} />
   </div>
 }

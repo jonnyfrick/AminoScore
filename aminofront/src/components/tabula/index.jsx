@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useGlobalFilter, useSortBy, useTable } from "react-table";
 import tw from "twin.macro";
 import { GlobalFilter } from "./globalFilter";
+import './index.css'
 
 const Table = tw.table`
   table-auto
@@ -79,38 +80,52 @@ export function Tabula({aminoArray, setAminoArray}) {
     return aminoArray[id].aminos
   }
   
-  const deleteAminos = (id) => {
+  /*const deleteAminos = (id) => {
     setAminoArray(current => 
       current.filter(obj => {
         return obj.id !== id
       })
     );
-  };
+  };*/
 
+  const addAminos = (id) => {
+    let newAminoArray = [...aminoArray];
+    if (newAminoArray[id].inchart === "true"){
+      newAminoArray[id].inchart = "false";
+      
+
+    }
+    else{
+      newAminoArray[id].inchart = "true";
+    }
+    setAminoArray(newAminoArray)
+  };
+  const isActivated = (st) => st === 'true';
 
   const tableHooks = (hooks) => {
     hooks.visibleColumns.push((columns) => [
       ...columns,
       {
         id: "Add",
-        Header: "Add",
+        Header: "Add/Drop",
         Cell: ({ row }) => (
-          <Button onClick={() => deleteAminos(row.values.id)}>
-            Del
+          <Button onClick={() => addAminos(parseInt(row.id))}>
+            {isActivated(row.original.inchart) ? "Drop" : "Add"}
           </Button>
           
         ),
       },
+      /*
       {
         id: "Remove",
         Header: "Remove",
         Cell: ({ row }) => (
-          <Button>
-            {row.id}
+          <Button  onClick={() => deleteAminos(row.values.id)}>
+            Del
           </Button>
           
         ),
-      },
+      },*/
     ]);
   };
 
@@ -140,6 +155,7 @@ export function Tabula({aminoArray, setAminoArray}) {
   // }, []);
 
   const isEven = (idx) => idx % 2 === 0;
+  
 
   return (
     <>
@@ -170,7 +186,8 @@ export function Tabula({aminoArray, setAminoArray}) {
             return (
               <TableRow
                 {...row.getRowProps()}
-                className={isEven(idx) ? "bg-slate-700 bg-opacity-30" : ""}
+                //className={isEven(idx) ? "bg-slate-700 bg-opacity-30" : ""}
+                className={isActivated(row.original.inchart) ? "bg-yellow-400" : ""}
               >
                 {row.cells.map((cell, idx) => (
                   <TableData {...cell.getCellProps()}>
