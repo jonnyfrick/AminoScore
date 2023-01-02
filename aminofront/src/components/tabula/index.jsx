@@ -71,6 +71,10 @@ export function Tabula({aminoArray, setAminoArray}) {
         Header: "Name",
         accessor: "name",
       },
+      {
+        Header: "inchart",
+        accessor: "inchart",
+      },
     ],
     []
   );
