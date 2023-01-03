@@ -1,5 +1,6 @@
 //import axios from "axios";
 import React, { useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useGlobalFilter, useSortBy, useTable } from "react-table";
 import tw from "twin.macro";
 import { GlobalFilter } from "./globalFilter";
@@ -52,16 +53,8 @@ const Button = tw.button`
 `;
 
 
-export function Tabula({aminoArray, setAminoIndex}) {
-  aminoArray.forEach((element) =>{
-    console.log(element.id, element.name, element.inchart)
-  });
+export function Tabula({ aminoArray, setAminoArray }) {
 
-
-
-
- 
- 
 
   const columns = useMemo(
     () => [
@@ -75,7 +68,7 @@ export function Tabula({aminoArray, setAminoIndex}) {
       },
       {
         Header: "Name",
-        accessor: "name",
+        accessor: "label",
       },
       {
         Header: "inchart",
@@ -84,13 +77,22 @@ export function Tabula({aminoArray, setAminoIndex}) {
     ],
     [aminoArray]
   );
-  
 
-  const feedback = (id) => {
-    console.log(id)
-    setAminoIndex(parseInt(id));
+
+  const add = (id) => {
+    const myNextArray = [...aminoArray];
+    const obj = myNextArray.find(f => f.id === id);
+    if (obj.inchart === 'true') {
+      obj.inchart = 'false';
+    }
+    else{
+      obj.inchart = 'true';
+    }
     
+    setAminoArray(myNextArray);
   }
+
+
 
 
   const isActivated = (st) => st === 'true';
@@ -102,10 +104,10 @@ export function Tabula({aminoArray, setAminoIndex}) {
         id: "Add",
         Header: "Add/Drop",
         Cell: ({ row }) => (
-          <Button onClick={() => feedback(row.id)}>
-            {isActivated(row.original.inchart) ? "Drop" : "Add"}
+          <Button onClick={() => add(row.values.id)}>
+            {isActivated(row.values.inchart) ? "Drop" : "Add"}
           </Button>
-          
+
         ),
       },
     ]);
@@ -132,12 +134,8 @@ export function Tabula({aminoArray, setAminoIndex}) {
     state,
   } = tableInstance;
 
-  // useEffect(() => {
-  //   fetchProducts();
-  // }, []);
 
-  //const isEven = (idx) => idx % 2 === 0;
-  
+
 
   return (
     <>
@@ -169,7 +167,7 @@ export function Tabula({aminoArray, setAminoIndex}) {
               <TableRow
                 {...row.getRowProps()}
                 //className={isEven(idx) ? "bg-slate-700 bg-opacity-30" : ""}
-                className={isActivated(row.original.inchart) ? "bg-yellow-400" : ""}
+                className={isActivated(row.values.inchart) ? "bg-yellow-400" : ""}
               >
                 {row.cells.map((cell, idx) => (
                   <TableData {...cell.getCellProps()}>
