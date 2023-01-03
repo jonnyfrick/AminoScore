@@ -52,7 +52,13 @@ const Button = tw.button`
 `;
 
 
-export function Tabula({aminoArray, setAminoArray}) {
+export function Tabula({aminoArray, setAminoIndex}) {
+  aminoArray.forEach((element) =>{
+    console.log(element.id, element.name, element.inchart)
+  });
+
+
+
 
  
  
@@ -76,34 +82,17 @@ export function Tabula({aminoArray, setAminoArray}) {
         accessor: "inchart",
       },
     ],
-    []
+    [aminoArray]
   );
   
 
-  const fetchAminos = (id) => {
-    return aminoArray[id].aminos
+  const feedback = (id) => {
+    console.log(id)
+    setAminoIndex(parseInt(id));
+    
   }
-  
-  /*const deleteAminos = (id) => {
-    setAminoArray(current => 
-      current.filter(obj => {
-        return obj.id !== id
-      })
-    );
-  };*/
 
-  const addAminos = (id) => {
-    let newAminoArray = [...aminoArray];
-    if (newAminoArray[id].inchart === "true"){
-      newAminoArray[id].inchart = "false";
-      
 
-    }
-    else{
-      newAminoArray[id].inchart = "true";
-    }
-    setAminoArray(newAminoArray)
-  };
   const isActivated = (st) => st === 'true';
 
   const tableHooks = (hooks) => {
@@ -113,23 +102,12 @@ export function Tabula({aminoArray, setAminoArray}) {
         id: "Add",
         Header: "Add/Drop",
         Cell: ({ row }) => (
-          <Button onClick={() => addAminos(parseInt(row.id))}>
+          <Button onClick={() => feedback(row.id)}>
             {isActivated(row.original.inchart) ? "Drop" : "Add"}
           </Button>
           
         ),
       },
-      /*
-      {
-        id: "Remove",
-        Header: "Remove",
-        Cell: ({ row }) => (
-          <Button  onClick={() => deleteAminos(row.values.id)}>
-            Del
-          </Button>
-          
-        ),
-      },*/
     ]);
   };
 
@@ -158,7 +136,7 @@ export function Tabula({aminoArray, setAminoArray}) {
   //   fetchProducts();
   // }, []);
 
-  const isEven = (idx) => idx % 2 === 0;
+  //const isEven = (idx) => idx % 2 === 0;
   
 
   return (

@@ -1,4 +1,4 @@
-import React, {  useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,13 +28,14 @@ ChartJS.register(
 
 
 
-
-
-
-
-export function Amino({apiData, setApiData}, ) {
-  console.log('fresh start')
+export function Amino({ origData },) {
+  console.log('run animo')
   
+  //decouple apiData from this Child component - so that it doesnot rerender parent
+  const [apiData, setApiData] = useState(origData);
+  useEffect(() => {
+    setApiData(origData);
+  },[origData])
 
 
 
@@ -70,20 +71,88 @@ export function Amino({apiData, setApiData}, ) {
       }
     },
   };
+
+
+  const [tableIndex, setTableIndex] = useState(0)
+
+  useEffect(() => {
+    
+    if (apiData.datasets.length>1){
+      const clone = apiData
+      let obj = clone.datasets[tableIndex];
+      console.log(obj, tableIndex)
+      if (obj.inchart==='true'){
+        obj.inchart = 'false';
+      }
+      else{
+        obj.inchart = 'true';
+      }
+      clone.datasets[tableIndex] = obj;
+      setApiData(clone)
+      
   
+      
+
+    }
+    console.log('hea')
+
+    /*
+    let correctLine = apiData.datasets.find(f => f.id === tableIndex)
+
+    setApiData({...apiData,
+      datasets: apiData.datasets.find(f => f.id === tableIndex)?.inchart='true'
+    })
+    console.log('woiked?')
+    /*
+    apiData.datasets.map(ele => {
+      if (ele.id === tableIndex) {
+
+      }
+    })
+    Object.entries(apiData).forEach(([key, value]) => {
+      if (key !== 'datasets') {
+        gluedBack.push({
+          labels: value
+        });
+      }
+      else {
+        const aRays = Object.entries(apiData.datasets).forEach(([key, value])=> {
+          return value;
+        })
+        console.log('sta')
+      }
+
+    });
+
+    if (apiData.datasets[tableIndex].inchart === 'true') {
+      apiData.datasets[tableIndex].inchart = 'false'
+    }
+    else {
+      apiData.datasets[tableIndex].inchart = 'true'
+    }*/
+    /*
+    const addAminos = (id) => {
+      let newAminoArray = [...aminoArray];
+      if (newAminoArray[id].inchart === "true"){
+        newAminoArray[id].inchart = "false";
+        
+  
+      }
+      else{
+        newAminoArray[id].inchart = "true";
+      }
+      setAminoIndex(newAminoArray)
+    };*/
 
 
-
-
-
-  const [foodIndex, setFoodIndex] = useState([0])
+  }, [tableIndex]);
 
   //
   return <div className='container'>
-    
+
     <Bar options={options} data={apiData} />
-    <Tabula aminoArray={apiData.datasets} setApiData={setApiData} />
-    
-    
+    <Tabula aminoArray={apiData.datasets} setAminoIndex={setTableIndex} />
+
+
   </div>
 }

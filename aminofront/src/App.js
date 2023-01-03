@@ -87,9 +87,9 @@ export function App() {
   if (apiData.length < 2) {
     setApiData(preparedData())
   }
-
+  console.log('please only at beginning')
   return <div>
-    <Amino apiData={apiData} setApiData={setApiData} />
+    <Amino origData={apiData} />
   </div>
 }
 
