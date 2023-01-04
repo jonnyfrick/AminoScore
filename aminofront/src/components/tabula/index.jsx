@@ -63,7 +63,7 @@ export function Tabula({ aminoArray, setAminoArray }) {
         accessor: "id",
       },
       {
-        Header: "KCal",
+        Header: "TotalEnergy",
         accessor: "KCal",
       },
       {

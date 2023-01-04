@@ -15,4 +15,4 @@ class FoodSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Food
-        fields = ['url','food_category', 'food_name', 'Histidine', 'Isoleucine', 'Leucine', 'Lysine', 'Methionine', 'Phenylalanine', 'Threonine', 'Tryptophan', 'Valine', 'Tyrosine']
+        fields = ['url','food_category', 'food_name', 'Histidine', 'Isoleucine', 'Leucine', 'Lysine', 'Methionine', 'Phenylalanine', 'Threonine', 'Tryptophan', 'Valine', 'Tyrosine', 'TotalEnergy']
