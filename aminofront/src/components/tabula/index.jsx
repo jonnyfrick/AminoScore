@@ -70,10 +70,7 @@ export function Tabula({ aminoArray, setAminoArray }) {
         Header: "Name",
         accessor: "label",
       },
-      {
-        Header: "inchart",
-        accessor: "inchart",
-      },
+
     ],
     [aminoArray]
   );
@@ -105,7 +102,7 @@ export function Tabula({ aminoArray, setAminoArray }) {
         Header: "Add/Drop",
         Cell: ({ row }) => (
           <Button onClick={() => add(row.values.id)}>
-            {isActivated(row.values.inchart) ? "Drop" : "Add"}
+            {isActivated(row.original.inchart) ? "Drop" : "Add"}
           </Button>
 
         ),
@@ -167,7 +164,7 @@ export function Tabula({ aminoArray, setAminoArray }) {
               <TableRow
                 {...row.getRowProps()}
                 //className={isEven(idx) ? "bg-slate-700 bg-opacity-30" : ""}
-                className={isActivated(row.values.inchart) ? "bg-yellow-400" : ""}
+                className={isActivated(row.original.inchart) ? "bg-yellow-400" : ""}
               >
                 {row.cells.map((cell, idx) => (
                   <TableData {...cell.getCellProps()}>

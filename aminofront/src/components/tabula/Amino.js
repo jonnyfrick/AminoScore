@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,37 +29,40 @@ ChartJS.register(
 
 
 export function Amino({ origData },) {
+
   
-  
+
   //decouple apiData from this Child component - so that it doesnot rerender parent
   const [apiData, setApiData] = useState(origData);
-  const [barData, setBarData] = useState(origData);
   const [datasets, setDatasets] = useState(apiData.datasets)
+  const [barData, setBarData] = useState(origData);
+
+
+
   useEffect(() => {
     setApiData(origData);
-    setBarData(origData);
     setDatasets(origData.datasets)
-  },[origData])
-  useEffect(() => {
-    
-    if (barData.datasets.length>1){
-      const nextBarData = barData;
-      const ds  = nextBarData.datasets;
-      const newDs = ds.filter((ele)=> ele.inchart === 'true')
-      nextBarData.datasets = newDs;
-      setBarData(nextBarData);
+    const chosenOrig = origData;
+    const ds = chosenOrig.datasets;
+    const newDs = ds.filter((ele) => ele.inchart === 'true')
+    chosenOrig.datasets = newDs;
+    setBarData(chosenOrig);
+
+  }, [origData])
+
+  const prepareBar = function prepper(data, origData) {
+    const nextBarData = origData;
+    const newDs = datasets.filter((ele) => ele.inchart === 'true')
+    nextBarData.datasets = newDs;
+    setBarData(nextBarData);
+  }
+
+  useMemo(() => {
+    prepareBar(datasets, origData)
+  }, [datasets])
 
 
-      console.log(barData)
-    }
-    
-    
-
-    
-  },[datasets])
   
-
-
 
   const options = {
     responsive: true,
@@ -93,8 +96,10 @@ export function Amino({ origData },) {
       }
     },
   };
- 
   
+
+
+
   return <div className='container'>
 
     <Bar options={options} data={barData} />
